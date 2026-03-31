@@ -1,0 +1,30 @@
+.groupform__details {
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+}
+.groupform__detail-errors {
+  font-family: "CabinetGroteskBold";
+}
+
+.groupform_cancel-btn {
+  background-color: #fff;
+  color: #000;
+  text-align: center;
+  padding: 8px 16px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 100%;
+  width: 124px;
+  height: 36px;
+  font-family: "CabinetGroteskBold";
+  font-size: 16px;
+  line-height: 20px;
+  margin-left: 16px;
+}
+.groupform_cancel-btn:hover {
+  background-color: #000;
+  opacity: 0.6;
+  color: #fff;
+}

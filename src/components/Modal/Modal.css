@@ -1,0 +1,37 @@
+.modal {
+  visibility: hidden;
+  background-color: rgba(0, 0, 0, 0.3);
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  opacity: 0;
+  transition:
+    visibility 0s linear 0.5s,
+    opacity 0.5s linear;
+}
+
+.modal_is-opened {
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0s;
+}
+.modal__container {
+  background-color: #fff;
+  font-family: "CabinetGroteskBold";
+  font-size: 16px;
+  line-height: 20px;
+  position: relative;
+}
+@media screen and (max-width: 630px) {
+  .modal {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

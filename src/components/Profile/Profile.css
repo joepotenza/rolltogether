@@ -1,0 +1,64 @@
+.profile {
+  display: flex;
+  gap: 15px;
+  align-items: start;
+  margin-top: 12px;
+  position: relative; /* for preloader */
+}
+
+.sidebar__profile {
+  padding: 6px 0 12px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.profile__content {
+  padding-top: 8px;
+  flex: 1 0 calc(100% - 220px);
+}
+
+.profile__title {
+  font-family: "CabinetGroteskBold";
+  font-size: 24px;
+  margin: 0 0 24px;
+}
+
+.profile__avatar {
+  width: 120px;
+  height: 120px;
+}
+
+.profile__username {
+  margin: 0;
+  font-family: "CabinetGroteskBold";
+  font-size: 24px;
+}
+
+.profile__subtitle {
+  margin: 0;
+  font-size: 24px;
+  font-family: "CabinetGroteskBold";
+}
+
+.profile__manager {
+  margin-bottom: 24px;
+}
+
+.profile__results {
+  margin: 24px 0;
+}
+
+.profile__form-fields {
+  max-width: 240px;
+}
+
+.profile__groups_gm,
+.profile__groups_member {
+  /* for preloader */
+  position: relative;
+  width: 100%;
+  min-height: 250px;
+}

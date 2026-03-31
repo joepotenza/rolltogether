@@ -1,0 +1,22 @@
+.sidebar__filters {
+  background-color: #eee;
+  padding: 6px 0 12px 8px;
+  border-radius: 10px;
+}
+
+.filters__title {
+  margin: 0;
+  font-family: "CabinetGroteskBold";
+  font-size: 20px;
+}
+
+.filters__select,
+.filter__homebrew {
+  display: block;
+  margin-top: 12px;
+}
+
+.filters__select {
+  padding: 4px;
+  border-radius: 6px;
+}

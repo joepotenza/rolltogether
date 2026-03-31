@@ -1,0 +1,23 @@
+.footer {
+  display: flex;
+  justify-content: space-between;
+  font-family: "CabinetGrotesk";
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0%;
+  margin: 171px auto 0 auto;
+  padding-bottom: 24px;
+  height: 20px;
+}
+.footer__text {
+  display: flex;
+  flex-direction: column;
+}
+.footer__developer,
+.footer__copyright {
+  margin: 0;
+}
+.footer__attribution {
+  color: #000;
+}

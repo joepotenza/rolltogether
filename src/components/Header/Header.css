@@ -1,0 +1,234 @@
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 0;
+  font-family: "CabinetGroteskBold";
+  font-weight: 500;
+  font-size: 20px;
+  font-style: normal;
+  line-height: 24px;
+  letter-spacing: 0%;
+  border-bottom: 1px solid rgba(0, 84, 100);
+  position: relative;
+}
+
+.header__logo {
+  height: 40px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.logo__icon {
+  width: 40px;
+  height: 40px;
+}
+
+.logo__text {
+  font-family: "ChillaxVariable", Arial, Helvetica, sans-serif;
+  font-size: 32px;
+  line-height: 100%;
+  font-weight: 500;
+  color: rgba(0, 84, 100);
+}
+
+.header__menu {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-left: auto;
+  position: relative;
+  /*gap: 10px;*/
+}
+
+.header__menu-btn {
+  display: none;
+  width: 44px;
+  height: 44px;
+}
+
+.header__user-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  /*gap: 12px;*/
+}
+.header__user-container_loggedIn_true {
+  gap: 12px;
+}
+
+.header__user-name {
+  margin: 0;
+  color: #000;
+}
+
+.header__avatar {
+  width: 40px;
+  height: 40px;
+}
+
+.header__avatar,
+.header__avatar:visited {
+  color: rgba(255, 255, 255, 1);
+}
+
+.header__menu-close-btn {
+  display: none;
+}
+
+.header__menu-close-btn:hover {
+  opacity: 0.6;
+}
+
+.header__user-signup,
+.header__user-login,
+.header__create-group {
+  padding: 0 8px 0 32px;
+  font-size: 20px;
+  line-height: 24px;
+  cursor: pointer;
+  background-color: transparent;
+  background-position: 8px center;
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
+  border: 2px solid #fff;
+}
+.header__create-group {
+  background-image: url(../../images/group_icon.svg);
+}
+
+.header__user-signup {
+  background-image: url(../../images/signup_icon.svg);
+}
+
+.header__user-login {
+  background-image: url(../../images/login_icon.svg);
+}
+
+.header__user-signup:hover,
+.header__user-login:hover,
+.header__create-group:hover {
+  border-radius: 6px;
+  border-color: rgba(0, 84, 100);
+  background-color: rgba(0, 84, 100);
+  color: white;
+}
+
+.header__create-group:hover {
+  background-image: url(../../images/group_icon_hover.svg);
+}
+
+.header__user-signup:hover {
+  background-image: url(../../images/signup_icon_hover.svg);
+}
+
+.header__user-login:hover {
+  background-image: url(../../images/login_icon_hover.svg);
+}
+
+.header__user-container_loggedIn_true {
+  padding: 0 8px 0 26px;
+  background-color: transparent;
+  background-position: 8px center;
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
+  background-image: url(../../images/vertical_dots_icon_grey.svg);
+}
+
+.header__profile-menu {
+  display: none;
+  position: absolute;
+  width: 164px;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  border-radius: 0 0 8px 8px;
+  background: #fff;
+  left: 0;
+  bottom: -78px;
+  z-index: 10;
+}
+
+.header__profile-menu_open {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-menu__link {
+  font-family: "CabinetGrotesk";
+  padding: 0 8px 0 26px;
+  background-color: transparent;
+  background-position: 8px center;
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
+  background-image: url(../../images/vertical_dots_icon_grey.svg);
+  margin: 0 0 8px 0;
+}
+.profile-menu__link:hover {
+  color: rgba(0, 84, 100);
+}
+
+@media screen and (max-width: 768px) {
+  .header {
+    display: grid;
+    grid-template-columns: [col] auto [col] auto [col];
+    grid-template-rows: [row] auto [row] auto [row];
+    align-items: center;
+  }
+
+  .header__logo {
+    grid-column: col / span 2;
+    grid-row: row;
+  }
+  .header_page_profile .header__logo {
+    grid-column: 1;
+    grid-row: 1;
+    margin-right: 12px;
+  }
+
+  .header__menu {
+    display: none;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+  }
+  .header_menu_open .header__menu {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    width: 343px;
+    height: 240px;
+    position: absolute;
+    top: 18px;
+    left: 16px;
+    z-index: 2;
+  }
+  .header__menu-btn {
+    margin-left: auto;
+    display: block;
+    cursor: pointer;
+    grid-column: col / span 2;
+    grid-row: row;
+  }
+  .header_page_profile .header__menu-btn {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .header_menu_open .header__menu-close-btn {
+    display: block;
+    position: absolute;
+    top: 11px;
+    right: 11px;
+    cursor: pointer;
+  }
+  .header__user-signup,
+  .header__user-login {
+    background-color: #fff;
+  }
+}

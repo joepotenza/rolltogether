@@ -1,0 +1,7 @@
+.group__sessions {
+}
+.sessions__header {
+}
+.sessions_list {
+  position: relative; /*for preloader*/
+}

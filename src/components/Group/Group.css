@@ -1,0 +1,192 @@
+.group {
+  position: relative; /*for preloader*/
+}
+.group__back-btn {
+  display: block;
+  margin: 8px 0 0;
+}
+
+.group__content {
+  margin-top: 24px;
+  display: flex;
+  gap: 15px;
+  align-items: start;
+}
+
+.group__details {
+  flex: 1 0 calc(100% - 250px);
+}
+
+.group__name {
+  margin: 0 0 24px;
+  font-family: "CabinetGroteskBold";
+  font-size: 32px;
+}
+
+.group__description {
+  margin: 16px 0;
+}
+
+.group__info {
+  margin: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 8px;
+  width: 100%;
+}
+
+.group__gm,
+.group__players,
+.group__player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.group__avatar {
+  width: 40px;
+  height: 40px;
+}
+.group__avatar,
+.group__avatar:visited {
+  color: rgba(255, 255, 255, 1);
+}
+
+.gm__header,
+.players__header {
+  font-family: "CabinetGroteskBold";
+  font-size: 20px;
+  color: rgba(0, 84, 100);
+  background-color: #e7e7e7;
+  width: 100%;
+  text-align: center;
+  padding: 4px 0;
+  border-radius: 8px;
+}
+
+.players__header {
+  margin-bottom: 8px;
+}
+
+.gm__name,
+.player__name {
+  font-family: "CabinetGroteskBold";
+}
+
+.group__system,
+.group__type,
+.group__story,
+.group__slots {
+  border-radius: 10px;
+  font-family: "CabinetGroteskBold";
+  padding: 5px;
+  text-align: center;
+  min-width: 100px;
+}
+.group__system,
+.group__type,
+.group__slots {
+  max-width: 150px;
+}
+
+.group__system_type_35e {
+  border: 1px solid #67bed9;
+  background-color: #67bed9;
+}
+
+.group__system_type_5e {
+  border: 1px solid #d967be;
+  background-color: #d967be;
+}
+
+.group__system_type_55e {
+  border: 1px solid #bed967;
+  background-color: #bed967;
+}
+
+.group_type_live {
+  border: 1px solid #424242;
+  background-color: #424242;
+  color: #fff;
+}
+
+.group_type_online {
+  border: 1px solid #d7d7d7;
+  background-color: #d7d7d7;
+  color: #000;
+}
+
+.group_type_hybrid {
+  border: 1px solid #d98267;
+  background-color: #d98267;
+  color: #000;
+}
+
+.group__story,
+.group__slots {
+  border: 1px solid rgba(0, 84, 100);
+  background-color: rgba(0, 84, 100);
+  color: #fff;
+}
+
+.group__application {
+  max-width: 700px;
+}
+
+.group_edit-btn {
+  background-color: #000;
+  color: #fff;
+  text-align: center;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 100%;
+  width: 124px;
+  height: 36px;
+  font-family: "CabinetGroteskBold";
+  font-size: 16px;
+  line-height: 20px;
+}
+.group_edit-btn:hover {
+  opacity: 0.6;
+}
+
+.group_schedule-btn {
+  background-color: #000;
+  color: #fff;
+  text-align: center;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 100%;
+  width: 160px;
+  height: 36px;
+  font-family: "CabinetGroteskBold";
+  font-size: 16px;
+  line-height: 20px;
+  margin-left: 16px;
+}
+.group_schedule-btn:hover {
+  opacity: 0.6;
+}
+
+@media screen and (max-width: 630px) {
+  .group__content {
+    flex-direction: column;
+  }
+  .group__sidebar {
+    width: 100%;
+  }
+  .group__system,
+  .group__type,
+  .group__story,
+  .group__slots {
+    flex: 1 0 calc(50% - 8px);
+    max-width: 180px;
+  }
+}

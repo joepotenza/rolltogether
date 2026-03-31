@@ -1,0 +1,32 @@
+@import url(./vendor/normalize.css);
+@font-face {
+  src: url("./fonts/cabinet-grotesk/CabinetGrotesk-Regular.otf")
+    format("opentype");
+  font-family: "CabinetGrotesk";
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  src: url("./fonts/cabinet-grotesk/CabinetGrotesk-Bold.otf") format("opentype");
+  font-family: "CabinetGroteskBold";
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  src: url("./fonts/chillax/Chillax-Regular.otf") format("opentype");
+  font-family: "Chillax";
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  src: url("./fonts/chillax/Chillax-SemiBold.otf") format("opentype");
+  font-family: "ChillaxSemiBold";
+}
+@font-face {
+  src: url("./fonts/chillax/Chillax-Bold.otf") format("opentype");
+  font-family: "ChillaxBold";
+}
+@font-face {
+  src: url("./fonts/chillax/Chillax-Variable.ttf") format("truetype");
+  font-family: "ChillaxVariable";
+}

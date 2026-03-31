@@ -1,0 +1,21 @@
+.signup__content {
+  width: 300px;
+  margin: 24px auto 0;
+}
+.signup__title {
+  margin: 0 0 24px;
+  font-size: 20px;
+  line-height: 24px;
+  font-family: "CabinetGroteskBold";
+}
+
+.signup__error {
+  margin: 20px 0 10px 0;
+  font-family: "CabinetGroteskBold";
+}
+
+@media screen and (max-width: 630px) {
+  .signup__content {
+    width: 250px;
+  }
+}

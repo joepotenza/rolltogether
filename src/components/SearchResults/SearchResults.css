@@ -1,0 +1,138 @@
+.results {
+  /*margin: 6px 0 0 0;*/
+  width: 100%;
+}
+
+.results__table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.results__header {
+  font-family: "CabinetGroteskBold";
+  font-size: 20px;
+}
+
+.results__header-cell {
+  padding: 5px;
+  vertical-align: top;
+  background-color: #eee; /* #dcf1f5;*/
+  /*border-bottom: 1px solid black;*/
+}
+
+.results__header-cell_type_description {
+  width: 100%;
+  border-radius: 10px 0 0 0;
+}
+
+.results__header-cell_type_details {
+  min-width: 250px;
+  border-radius: 0 10px 0 0;
+}
+
+.results__result:nth-of-type(even) {
+  background-color: #dcf1f5;
+}
+
+.result__cell {
+  vertical-align: top;
+  padding: 12px 5px 12px 0;
+}
+
+.result__cell:first-of-type {
+  padding-left: 5px;
+}
+
+.result__cell:not(:last-of-type) {
+  padding-right: 12px;
+}
+
+.result__name,
+.result__name:visited {
+  color: rgba(0, 131, 147);
+  font-family: "CabinetGroteskBold";
+  font-size: 18px;
+}
+
+.result__details {
+  display: flex;
+  flex-direction: column;
+}
+
+.result__group {
+  display: flex;
+  gap: 4px;
+  margin: 0 auto 8px;
+  width: 100%;
+}
+
+.result__system,
+.result__type {
+  width: 100%;
+  border-radius: 10px;
+  font-family: "CabinetGroteskBold";
+  padding: 5px;
+  text-align: center;
+}
+
+.result__system_type_35e {
+  border: 1px solid #67bed9;
+  background-color: #67bed9;
+}
+
+.result__system_type_5e {
+  border: 1px solid #d967be;
+  background-color: #d967be;
+}
+
+.result__system_type_55e {
+  border: 1px solid #bed967;
+  background-color: #bed967;
+}
+
+.result_type_live {
+  border: 1px solid #424242;
+  background-color: #424242;
+  color: white;
+}
+
+.result_type_online {
+  border: 1px solid #d7d7d7;
+  background-color: #d7d7d7;
+  color: black;
+}
+
+.result_type_hybrid {
+  border: 1px solid #d98267;
+  background-color: #d98267;
+  color: black;
+}
+
+.result__gm {
+  font-family: "CabinetGroteskBold";
+  display: flex;
+  gap: 8px;
+}
+.result__gm-link {
+  color: rgba(0, 131, 147);
+}
+
+.result__players,
+.result__story {
+  display: flex;
+  gap: 8px;
+}
+
+.result__players-label,
+.result__story-label {
+  font-family: "CabinetGroteskBold";
+}
+
+@media screen and (max-width: 768px) {
+  .result__group {
+    flex-direction: column;
+  }
+  .results__header-cell_type_details {
+    min-width: 150px;
+  }
+}

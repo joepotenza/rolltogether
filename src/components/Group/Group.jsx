@@ -4,19 +4,24 @@
 */
 
 import "./Group.css";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import { useParams } from "react-router";
+import DOMPurify from "dompurify";
+import { useLoadMonitor } from "../../hooks/useLoadMonitor";
+import { useErrorHandler } from "../../hooks/useErrorHandler";
 import PreLoader from "../PreLoader/PreLoader";
-import NotFound from "../NotFound/NotFound";
 import GroupDetails from "../GroupDetails/GroupDetails";
 import GroupSidebar from "../GroupSidebar/GroupSidebar";
 import GroupApplication from "../GroupApplication/GroupApplication";
+import GroupApplicationList from "../GroupApplicationList/GroupApplicationList";
 import GroupAdministration from "../GroupAdministration/GroupAdministration";
 import GroupSessionList from "../GroupSessionList/GroupSessionList";
+import GroupSessionScheduler from "../GroupSessionScheduler/GroupSessionScheduler";
 import GroupForm from "../GroupForm/GroupForm";
 import CurrentUserContext from "../../contexts/CurrentUserContext";
+import PageContext from "../../contexts/PageContext";
 
-function Group({ api, onFetchError }) {
+function Group() {
   const emptyGroupInfo = {
     _id: "",
     name: "",
@@ -44,162 +49,363 @@ function Group({ api, onFetchError }) {
   };
   const { groupId } = useParams();
 
-  const [groupInfo, setGroupInfo] = useState(emptyGroupInfo);
-  const [isGroupLoading, setIsGroupLoading] = useState(true);
-
-  const [applicationList, setApplicationList] = useState([]);
-  const [isApplicationListLoading, setIsApplicationListLoading] =
-    useState(false);
-
-  const [sessionList, setSessionList] = useState([]);
-  const [isSessionListLoading, setIsSessionListLoading] = useState(false);
-
   const { currentUser, isLoggedIn } = useContext(CurrentUserContext);
+  const { groupAPI, handleCloseModal } = useContext(PageContext);
 
-  const [isOwner, setIsOwner] = useState(false);
-  const [isMember, setIsMember] = useState(false);
+  const [editSessionInfo, setEditSessionInfo] = useState({});
 
-  const [isEditMode, setIsEditMode] = useState(false);
+  const { onFetchError, ErrorUI } = useErrorHandler(true);
 
-  const checkIsMember = (group = groupInfo) => {
-    return group.members.some((member) => {
+  // If logged out while on an owner or member-only screen, go back to description
+  const [selectedTab, setSelectedTab] = useState("description");
+  const displayMode = useMemo(() => {
+    return !isLoggedIn ? "description" : selectedTab;
+  }, [isLoggedIn, selectedTab]);
+
+  /**
+   * Loading Monitor for Group Info
+   */
+  async function fetchGroupInfo() {
+    try {
+      const data = await groupAPI.getGroup({ groupId });
+      return data || emptyGroupInfo;
+    } catch (err) {
+      onFetchError(err);
+      return emptyGroupInfo;
+    }
+  }
+  const {
+    isGroupLoading,
+    setIsGroupLoading,
+    groupInfo,
+    setGroupInfo,
+    getGroupInfo,
+  } = useLoadMonitor({
+    variableName: "isGroupLoading",
+    variableSetterName: "setIsGroupLoading",
+    initialValue: true,
+    loadingFunction: fetchGroupInfo,
+    resultVariableName: "groupInfo",
+    resultVariableSetterName: "setGroupInfo",
+    initialResultValue: emptyGroupInfo,
+    functionName: "getGroupInfo",
+  });
+
+  /**
+   * Loading Monitor for Application List
+   */
+
+  async function fetchGroupApplications() {
+    try {
+      const data = await groupAPI.getGroupApplications({ groupId });
+      return data || [];
+    } catch (error) {
+      onFetchError(error);
+      return [];
+    }
+  }
+  const {
+    isApplicationListLoading,
+    setIsApplicationListLoading,
+    applicationList,
+    setApplicationList,
+    getGroupApplications,
+  } = useLoadMonitor({
+    variableName: "isApplicationListLoading",
+    variableSetterName: "setIsApplicationListLoading",
+    initialValue: false,
+    loadingFunction: fetchGroupApplications,
+    resultVariableName: "applicationList",
+    resultVariableSetterName: "setApplicationList",
+    initialResultValue: [],
+    functionName: "getGroupApplications",
+  });
+
+  async function fetchGroupSessions() {
+    try {
+      const data = await groupAPI.getGroupSessions({ groupId });
+      return data || [];
+    } catch (error) {
+      onFetchError(error);
+      return [];
+    }
+  }
+
+  /**
+   * Loading Monitor for Session List
+   */
+  const {
+    isSessionListLoading,
+    setIsSessionListLoading,
+    sessionList,
+    setSessionList,
+    getGroupSessions,
+  } = useLoadMonitor({
+    variableName: "isSessionListLoading",
+    variableSetterName: "setIsSessionListLoading",
+    initialValue: false,
+    loadingFunction: fetchGroupSessions,
+    resultVariableName: "sessionList",
+    resultVariableSetterName: "setSessionList",
+    initialResultValue: [],
+    functionName: "getGroupSessions",
+  });
+
+  /**
+   * Loading Monitor for User's Application(s)
+   */
+
+  async function fetchMyApplications() {
+    try {
+      const data = await groupAPI.getGroupApplications({
+        groupId,
+        filters: { userId: currentUser._id },
+      });
+      return data || [];
+    } catch (error) {
+      onFetchError(error);
+      return [];
+    }
+  }
+  const {
+    isMyApplicationListLoading,
+    setIsMyApplicationListLoading,
+    myApplicationList,
+    setMyApplicationList,
+    getMyApplications,
+  } = useLoadMonitor({
+    variableName: "isMyApplicationListLoading",
+    variableSetterName: "setIsMyApplicationListLoading",
+    initialValue: false,
+    loadingFunction: fetchMyApplications,
+    resultVariableName: "myApplicationList",
+    resultVariableSetterName: "setMyApplicationList",
+    initialResultValue: [],
+    functionName: "getMyApplications",
+  });
+
+  const isOwner = useMemo(() => {
+    return currentUser._id && currentUser._id === groupInfo.owner._id;
+  }, [currentUser._id, groupInfo.owner._id]);
+
+  const isMember = useMemo(() => {
+    const userIsMember = groupInfo.members.some((member) => {
       return member._id === currentUser._id;
     });
+    return currentUser._id && userIsMember;
+  }, [currentUser._id, groupInfo.members]);
+
+  // Click "edit session" - replaces page contents
+  const handleEditSession = (session) => {
+    setEditSessionInfo(session);
+    setSelectedTab("scheduler");
   };
 
-  function getGroupInfo() {
-    api
-      .getGroup({ groupId })
-      .then((data) => {
-        setGroupInfo(data);
-        setIsGroupLoading(false);
-      })
-      .catch(onFetchError);
-  }
-
-  function getGroupApplications() {
-    api
-      .getGroupApplications({ groupId })
-      .then((data) => {
-        setApplicationList(data);
-        setIsApplicationListLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setIsApplicationListLoading(false);
-      });
-  }
-  function getGroupSessions() {
-    api
-      .getGroupSessions({ groupId })
-      .then((data) => {
-        setSessionList(data);
-        setIsSessionListLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setIsSessionListLoading(false);
-      });
-  }
-
-  const handleToggleEditForm = () => {
-    setIsEditMode(!isEditMode);
-  };
-
-  const handleApplicationSubmission = (values, afterSubmit) => {
-    /*
-      api.submitApplication
-    */
-    console.log("handleApplicationSubmission ", values);
-    afterSubmit();
-  };
-
-  const handleEditGroup = (values, onError) => {
-    api
-      .editGroup(groupId, values)
-      .then((group) => {
-        setGroupInfo(group);
-        setIsEditMode(false);
+  //Delete session
+  const handleDeleteSession = (sessionId, onSuccess, onError) => {
+    console.log("deleting session ", sessionId);
+    groupAPI
+      .deleteSession(sessionId)
+      .then((response) => {
+        getGroupSessions();
+        handleCloseModal();
+        onSuccess();
       })
       .catch(onError);
+  };
+
+  // process "Edit Group" form
+  const handleEditGroup = (group) => {
+    setGroupInfo(group);
+    setSelectedTab("description");
+  };
+
+  // after submitting "Schedule Session" form
+  const handleScheduleSession = (values, onError) => {
+    console.log("handleScheduleSession ", values);
+    if (!values._id) {
+      // submit new group
+      groupAPI
+        .createSession(values)
+        .then((/* session */) => {
+          setSelectedTab("sessionList");
+          getGroupSessions();
+        })
+        .catch(onError);
+    } else {
+      // submit edit session
+      groupAPI
+        .editSession(values._id, values)
+        .then((/* session */) => {
+          setSelectedTab("sessionList");
+          getGroupSessions();
+        })
+        .catch(onError);
+    }
+  };
+
+  // Handle Application submission
+  const handleApplicationSubmission = (values, afterSubmit, onError) => {
+    const { message } = values;
+    const newAppList = [...myApplicationList];
+    groupAPI
+      .submitApplication({ groupId, message })
+      .then((app) => {
+        newAppList.unshift(app);
+        setMyApplicationList(newAppList);
+        if (afterSubmit) {
+          afterSubmit();
+        }
+        setSelectedTab("description");
+      })
+      .catch(onError);
+  };
+
+  /* After approving an application
+   * reloads groupInfo so the member list and open seats refresh properly
+   */
+  const handleApproveApplication = () => {
+    getGroupInfo();
+    getGroupApplications();
   };
 
   // load group on page render
   useEffect(() => {
     getGroupInfo();
-  }, []);
+  }, [getGroupInfo, isLoggedIn, displayMode]);
 
   // Update ownership state if group or current user changes
   useEffect(() => {
-    const isGroupOwner =
-      currentUser._id &&
-      groupInfo._id &&
-      currentUser._id === groupInfo.owner._id;
-    const isGroupMember = currentUser._id && groupInfo._id && checkIsMember();
-    setIsOwner(isGroupOwner);
-    setIsMember(isGroupMember);
-    if (isGroupOwner) {
-      setIsApplicationListLoading(true);
+    if (!groupInfo._id) {
+      return;
+    }
+    if (isOwner) {
+      // load applications for owner to view/update
       getGroupApplications();
     }
-    if (isGroupOwner || isGroupMember) {
-      setIsSessionListLoading(true);
+    if (isOwner || isMember) {
+      // load sessions for owner/members to view
       getGroupSessions();
     }
-  }, [groupInfo, currentUser]);
+    if (isLoggedIn && !isOwner && !isMember) {
+      // get any applications this user has submitted for the group
+      getMyApplications();
+    }
+  }, [
+    groupInfo._id,
+    isOwner,
+    isMember,
+    isLoggedIn,
+    getGroupApplications,
+    getGroupSessions,
+    getMyApplications,
+  ]);
 
   return (
-    <main className="group">
-      {/*<Link to="/" className="link__back group__back-btn">
-        Go Back
-      </Link>*/}
-      {isGroupLoading ? (
-        <PreLoader />
-      ) : !groupInfo._id ? (
-        <NotFound message={"Sorry, we couldn't find that group"} />
-      ) : isOwner && isEditMode ? (
-        <GroupForm
-          api={api}
-          groupInfo={groupInfo}
-          onSubmit={handleEditGroup}
-          handleToggleEditForm={handleToggleEditForm}
-        />
-      ) : (
-        <div className="group__content">
-          {/*Set document title*/}
-          <title>{`${groupInfo.name} | Roll Together`}</title>
-          <div className="group__details">
-            <GroupDetails groupInfo={groupInfo} />
-            {isOwner && (
-              <GroupAdministration
-                groupInfo={groupInfo}
-                applicationList={applicationList}
-                isApplicationListLoading={isApplicationListLoading}
-                handleToggleEditForm={handleToggleEditForm}
-              />
-            )}
-            {(isOwner || isMember) && (
-              <GroupSessionList
-                groupInfo={groupInfo}
-                isOwner={isOwner}
-                isMember={isMember}
-                sessionList={sessionList}
-                isSessionListLoading={isSessionListLoading}
-              />
-            )}
-            {isLoggedIn && !isOwner && !isMember && (
-              <GroupApplication
-                groupInfo={groupInfo}
-                onSubmit={handleApplicationSubmission}
-              />
-            )}
-          </div>
-          <div className="sidebar group__sidebar">
-            <GroupSidebar groupInfo={groupInfo} />
-          </div>
-        </div>
-      )}
-    </main>
+    ErrorUI || (
+      <main className="group">
+        {isGroupLoading ? (
+          <PreLoader />
+        ) : (
+          <>
+            {/*Set document title*/}
+            <title>{`${groupInfo.name} | Roll Together`}</title>
+            <h1 className="group__name">{groupInfo.name}</h1>
+            <div className="group__content">
+              <div className="group__details">
+                {/* First: Details bar */}
+                <GroupDetails groupInfo={groupInfo} />
+
+                {/* Second: Administration bar */}
+                {isLoggedIn && (
+                  <GroupAdministration
+                    groupInfo={groupInfo}
+                    isOwner={isOwner}
+                    isMember={isMember}
+                    applicationList={applicationList}
+                    sessionList={sessionList}
+                    displayMode={displayMode}
+                    onGoBack={() => setSelectedTab("description")}
+                    onOpenEditForm={() => setSelectedTab("edit")}
+                    onOpenScheduler={() => setSelectedTab("scheduler")}
+                    onOpenSessionList={() => setSelectedTab("sessionList")}
+                    onOpenApplicationList={() =>
+                      setSelectedTab("applicationList")
+                    }
+                    onOpenApplicationForm={() => setSelectedTab("apply")}
+                    myApplications={myApplicationList}
+                  />
+                )}
+
+                {/* Edit Mode */}
+                {displayMode === "edit" && isOwner && (
+                  <GroupForm
+                    groupInfo={groupInfo}
+                    onSubmit={handleEditGroup}
+                    onGoBack={() => setSelectedTab("description")}
+                  />
+                )}
+
+                {/* Schedule A Session */}
+                {displayMode === "scheduler" && isOwner && (
+                  <GroupSessionScheduler
+                    groupInfo={groupInfo}
+                    sessionInfo={editSessionInfo}
+                    onSubmit={handleScheduleSession}
+                    onGoBack={() => setSelectedTab("description")}
+                  />
+                )}
+
+                {/* Application List */}
+                {displayMode === "applicationList" && isOwner && (
+                  <GroupApplicationList
+                    groupInfo={groupInfo}
+                    applicationList={applicationList}
+                    isApplicationListLoading={isApplicationListLoading}
+                    onApprove={handleApproveApplication}
+                  />
+                )}
+
+                {/* Session List */}
+                {displayMode === "sessionList" && (isOwner || isMember) && (
+                  <GroupSessionList
+                    groupInfo={groupInfo}
+                    isOwner={isOwner}
+                    isMember={isMember}
+                    sessionList={sessionList}
+                    isSessionListLoading={isSessionListLoading}
+                    handleEditSession={handleEditSession}
+                    handleDeleteSession={handleDeleteSession}
+                  />
+                )}
+
+                {/* Group Description (default page) */}
+                {displayMode === "description" && (
+                  <div
+                    className="group__description"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(groupInfo.description),
+                    }}
+                  ></div>
+                )}
+
+                {/* Application Form */}
+                {displayMode === "apply" && (
+                  <GroupApplication
+                    groupInfo={groupInfo}
+                    myApplications={myApplicationList}
+                    onSubmit={handleApplicationSubmission}
+                  />
+                )}
+              </div>
+
+              {/* Sidebar with member avatars */}
+              <GroupSidebar groupInfo={groupInfo} />
+            </div>
+          </>
+        )}
+      </main>
+    )
   );
 }
 export default Group;

@@ -3,6 +3,12 @@
   flex-direction: row;
   gap: 32px;
 }
+
+.groupform__title {
+  margin: 32px 0;
+  font-family: "CabinetGroteskBold";
+  font-size: 24px;
+}
 .groupform__detail-errors {
   font-family: "CabinetGroteskBold";
 }

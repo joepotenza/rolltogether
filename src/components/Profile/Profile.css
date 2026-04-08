@@ -2,12 +2,11 @@
   display: flex;
   gap: 15px;
   align-items: start;
-  margin-top: 12px;
+  margin-top: 32px;
   position: relative; /* for preloader */
 }
 
 .sidebar__profile {
-  padding: 6px 0 12px;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -18,12 +17,6 @@
 .profile__content {
   padding-top: 8px;
   flex: 1 0 calc(100% - 220px);
-}
-
-.profile__title {
-  font-family: "CabinetGroteskBold";
-  font-size: 24px;
-  margin: 0 0 24px;
 }
 
 .profile__avatar {
@@ -39,20 +32,12 @@
 
 .profile__subtitle {
   margin: 0;
-  font-size: 24px;
   font-family: "CabinetGroteskBold";
-}
-
-.profile__manager {
-  margin-bottom: 24px;
+  font-size: 24px;
 }
 
 .profile__results {
-  margin: 24px 0;
-}
-
-.profile__form-fields {
-  max-width: 240px;
+  margin: 32px 0;
 }
 
 .profile__groups_gm,
@@ -60,5 +45,12 @@
   /* for preloader */
   position: relative;
   width: 100%;
-  min-height: 250px;
+  min-height: 200px;
+}
+
+@media screen and (max-width: 630px) {
+  .profile {
+    flex-direction: column;
+    align-items: center;
+  }
 }

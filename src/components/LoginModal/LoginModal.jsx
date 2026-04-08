@@ -1,4 +1,3 @@
-import validator from "validator";
 import ModalWithForm from "../ModalWithForm/ModalWithForm";
 import { useFormWithValidation } from "../../hooks/useFormWithValidation";
 import { useEffect, useState } from "react";

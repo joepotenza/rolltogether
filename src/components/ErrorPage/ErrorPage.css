@@ -1,20 +1,20 @@
-.notfound {
+.errpage {
   min-width: 250px;
   min-height: 250px;
   max-width: 500px;
   margin: 24px auto;
-  font-family: "CabinetGroteskBold";
   font-size: 24px;
+  text-align: center;
 }
 
-.notfound__image {
-  width: 100%;
-  margin: 0 auto;
-  border-radius: 10px;
+.errpage__title {
+  margin: 0 0 24px;
+  font-size: 32px;
+  font-family: "CabinetGroteskBold";
 }
 
-.notfound__message {
+.errpage__message {
   width: 100%;
   text-align: center;
-  margin: 12px 0;
+  font-size: 20px;
 }

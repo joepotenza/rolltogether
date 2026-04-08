@@ -1,7 +1,136 @@
-.group__sessions {
-}
 .sessions__header {
+  font-size: 24px;
+  font-family: "CabinetGroteskBold";
+  margin: 24px 0;
 }
-.sessions_list {
+.sessions__list {
   position: relative; /*for preloader*/
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.session {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 1000px;
+  border: 1px solid #eee;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  padding: 8px;
+}
+.session__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.session__name {
+  font-family: "CabinetGroteskBold";
+  font-size: 20px;
+}
+.session__date {
+}
+.session__attendee-header {
+  font-family: "CabinetGroteskBold";
+  font-size: 18px;
+}
+.session__attendees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 10px;
+}
+.session__attendees > .attendee {
+  opacity: 1;
+}
+.session__buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  align-items: center;
+  gap: 12px;
+  margin-left: 8px;
+  margin-right: 4px;
+}
+
+.session__note-header {
+  font-family: "CabinetGroteskBold";
+  font-size: 18px;
+}
+.session__note {
+  margin-left: 10px;
+}
+
+.session__more {
+  font-family: "CabinetGroteskBold";
+  color: rgba(0, 131, 147);
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: inline;
+  cursor: pointer;
+  background-color: #fff;
+}
+
+.session__button {
+  border-radius: 8px;
+  padding: 8px;
+  font-family: "CabinetGroteskBold";
+  font-size: 18px;
+  min-width: 100px;
+  cursor: pointer;
+}
+
+.session__button_type_notes {
+  background: #ffe599;
+  color: #000;
+  border: 1px solid #ffe599;
+}
+
+.session__button_type_edit {
+  background: #2e7d32;
+  color: white;
+  border: 1px solid #2e7d32;
+}
+.session__button_type_delete {
+  background: #b91c1c; /* #de4545; */
+  color: white;
+  border: 1px solid #b91c1c;
+}
+.session__button:hover {
+  opacity: 0.8;
+}
+.session__error {
+  font-family: "CabinetGroteskBold";
+  color: rgba(255, 77, 0, 1);
+  margin-left: 72px;
+}
+
+.modal__title_type_notes {
+  color: rgba(0, 84, 100);
+}
+
+@media screen and (max-width: 768px) {
+  .session__name {
+    max-width: 375px;
+  }
+  .session__buttons {
+    margin-left: 0;
+  }
+}
+
+@media screen and (max-width: 630px) {
+  .session__buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-column-gap: 12px;
+    grid-template-rows: repeat(2, 1fr);
+    margin: 0 12px;
+  }
+  .session__button_type_notes {
+    grid-column: 1 / span 2;
+  }
 }

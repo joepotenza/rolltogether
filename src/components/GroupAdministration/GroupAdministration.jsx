@@ -1,36 +1,100 @@
 /*
     GroupAdminstration.jsx
-    Shows the available features for an owner of a group
-    Should show:
-    - Edit button (places page in edit mode, showing only the form)
-    - List of applications
-    - Session Scheduler
+    Shows the available functions for an owner or member of a group
+    or the application button / status for non-members
 */
 
 import "./GroupAdministration.css";
-import PreLoader from "../PreLoader/PreLoader";
-import GroupSessionScheduler from "../GroupSessionScheduler/GroupSessionScheduler";
 
 function GroupAdministration({
   groupInfo,
   applicationList,
-  isApplicationListLoading,
-  handleToggleEditForm,
-  handleToggleScheduler,
+  sessionList,
+  isOwner,
+  isMember,
+  displayMode,
+  onGoBack,
+  onOpenEditForm,
+  onOpenScheduler,
+  onOpenSessionList,
+  onOpenApplicationList,
+  onOpenApplicationForm,
+  myApplications,
 }) {
   return (
     <div className="group__administration">
-      <button className="group_edit-btn" onClick={handleToggleEditForm}>
-        Edit Group
-      </button>
-      <button className="group_schedule-btn" onClick={handleToggleScheduler}>
-        Schedule Session
-      </button>
-      <GroupSessionScheduler />
+      {displayMode != "description" && (
+        <button
+          className="administration__button administration__button_type_applications"
+          onClick={onGoBack}
+        >
+          Go Back
+        </button>
+      )}
+      {!isOwner && !isMember && displayMode !== "apply" ? (
+        myApplications && myApplications.length ? (
+          <button
+            className="administration__button admininistraion__button_type_apply administration__button_disabled"
+            disabled
+          >
+            Your application
+            {myApplications[0].status === "new"
+              ? " is being reviewed"
+              : myApplications[0].status === "approved"
+                ? " has been approved!"
+                : " was denied"}
+          </button>
+        ) : groupInfo.slots.open < 1 ? (
+          <button
+            className="administration__button admininistraion__button_type_apply administration__button_disabled"
+            disabled
+          >
+            Applications are currently closed
+          </button>
+        ) : (
+          <button
+            className="administration__button administration__button_type_apply"
+            onClick={onOpenApplicationForm}
+          >
+            Apply for this group
+          </button>
+        )
+      ) : (
+        ""
+      )}
+      {isOwner && displayMode !== "edit" && (
+        <button
+          className="administration__button administration__button_type_edit"
+          onClick={onOpenEditForm}
+        >
+          Edit Group
+        </button>
+      )}
+      {isOwner && displayMode !== "applicationList" && (
+        <button
+          className="administration__button administration__button_type_applications"
+          onClick={onOpenApplicationList}
+        >
+          Applications ({applicationList.length})
+        </button>
+      )}
+      {(isOwner || isMember) && displayMode !== "sessionList" && (
+        <button
+          className="administration__button administration__button_type_sessions"
+          onClick={onOpenSessionList}
+        >
+          {`Sessions (${sessionList.length})`}
+        </button>
+      )}
+      {isOwner && displayMode !== "scheduler" && (
+        <button
+          className="administration__button administration__button_type_schedule"
+          onClick={onOpenScheduler}
+        >
+          Schedule Session
+        </button>
+      )}
     </div>
   );
 }
-/*<div className="sessions_list">
-        {isApplicationListLoading && <PreLoader />}
-      </div>*/
 export default GroupAdministration;

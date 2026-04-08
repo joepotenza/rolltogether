@@ -5,7 +5,7 @@
 */
 import { useState } from "react";
 import { Editor } from "@tinymce/tinymce-react";
-import { TINYMCE_API_KEY } from "../../utils/constants";
+const { VITE_TINYMCE_API_KEY } = import.meta.env;
 
 function WYSIWYG({ initialContent = "", options = {}, onChange }) {
   const [content, setContent] = useState(initialContent);
@@ -44,7 +44,7 @@ function WYSIWYG({ initialContent = "", options = {}, onChange }) {
 
   return (
     <Editor
-      apiKey={TINYMCE_API_KEY}
+      apiKey={VITE_TINYMCE_API_KEY}
       onEditorChange={handleEditorChange}
       value={content}
       init={initOptions}

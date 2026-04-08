@@ -20,7 +20,7 @@ function AvatarGenerator({
     setGeneratorAvailable(false);
     if (onError) onError(err);
   };
-  const [avatar, setAvatar] = useState(
+  const [avatar] = useState(
     new Avatar({
       type: "DiceBear",
       target: "avatar",
@@ -98,7 +98,10 @@ function AvatarGenerator({
                 ""
               )}
             </div>
-            <select className="generator__type" onChange={handleChangeType}>
+            <select
+              className="form__select generator__type"
+              onChange={handleChangeType}
+            >
               <option value="DiceBear">Style 1</option>
               <option value="MultiAvatar">Style 2</option>
             </select>

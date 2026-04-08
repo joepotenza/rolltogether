@@ -14,13 +14,14 @@
   cursor: pointer;
 }
 
+.form__sublabel {
+  font-family: "CabinetGrotesk";
+  display: block;
+  margin: 12px 0 0 0;
+}
+
 .form__input {
   display: block;
-  /*border-top: none;
-  border-left: none;
-  border-right: none;
-  border-bottom: 1px solid #000;
-  padding: 0 0 4px 0;*/
   border: 1px solid #d8d8d8;
   border-radius: 6px;
   padding: 10px;
@@ -29,6 +30,21 @@
 }
 .form__input_type_number {
   max-width: 50px;
+}
+.form__datepicker {
+  display: block;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  padding: 10px;
+  margin: 8px 0 0 0;
+}
+.form__daterange {
+  display: block;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  padding: 10px;
+  margin: 8px 0 0 0;
+  width: 220px;
 }
 .form__textarea {
   font-family: "CabinetGroteskBold";
@@ -66,7 +82,7 @@
 }
 
 .form__submit-btn {
-  background-color: #000;
+  background-color: var(--main-teal);
   color: #fff;
   text-align: center;
   padding: 8px 16px;
@@ -115,7 +131,7 @@
 }
 
 .form__submit-btn-type_application {
-  width: 150px;
+  width: 180px;
 }
 
 .form__submit-btn:hover {

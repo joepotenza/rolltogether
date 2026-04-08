@@ -1,11 +1,16 @@
+/*
+  ErrorPage.jsx
+  Generic Error Page
+*/
 import "./ErrorPage.css";
-//import notFoundImage from "../../images/404.png";
-function ErrorPage({ type = "error", message = "" }) {
+function ErrorPage() {
   return (
-    <>
-      <h1>An Error Has Occurred</h1>
-      <h3>Please try again</h3>
-    </>
+    <div className="errpage">
+      <h1 className="errpage__title">An Error Has Occurred</h1>
+      <div className="errpage__message">
+        Please reload the page to try again
+      </div>
+    </div>
   );
 }
 export default ErrorPage;

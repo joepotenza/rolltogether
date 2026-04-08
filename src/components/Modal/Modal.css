@@ -11,6 +11,7 @@
   align-items: center;
   padding-left: 10px;
   padding-right: 10px;
+  z-index: 40;
   opacity: 0;
   transition:
     visibility 0s linear 0.5s,
@@ -29,9 +30,38 @@
   line-height: 20px;
   position: relative;
 }
+.modal__container_type_user-login,
+.modal__container_type_session-notes {
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  width: 496px;
+  padding: 28px 28px 36px;
+}
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 84, 100);
+  margin: 0 0 24px 0;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 24px;
+}
+
+.modal__scroller {
+  max-height: 300px;
+  overflow: scroll;
+}
 @media screen and (max-width: 630px) {
   .modal {
     padding-left: 16px;
     padding-right: 16px;
+  }
+  .modal__scroller {
+    max-height: 300px;
+    overflow: scroll;
   }
 }

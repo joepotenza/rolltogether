@@ -1,3 +1,7 @@
+/*
+  APIBase.js
+  Base Component for the API controllers: provides fetch, response processing, and auth token storage
+*/
 export default class ApiBase {
   constructor({ baseUrl, headers }) {
     // constructor body
@@ -7,8 +11,14 @@ export default class ApiBase {
   }
 
   // single internal function for making API calls
-  _makeAPICall({ endpoint, method = "GET", body = "", requireToken = false }) {
-    const headers = { ...this._headers };
+  _makeAPICall({
+    endpoint,
+    method = "GET",
+    body = "",
+    requireToken = false,
+    additionalHeaders = {},
+  }) {
+    const headers = { ...this._headers, ...additionalHeaders };
 
     // Add token if present and required
     if (this._token && requireToken) {
@@ -16,8 +26,8 @@ export default class ApiBase {
     }
 
     const params = {
-      method: method,
-      headers: headers,
+      method,
+      headers,
     };
 
     // Add body parameter when updating or adding content

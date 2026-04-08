@@ -34,10 +34,22 @@ function generateRandomHexColor() {
 
   return hexColor;
 }
+function prettyDateFormat(dt) {
+  const rtf = new Intl.RelativeTimeFormat(undefined, {
+    numeric: "auto",
+  });
+
+  const diff = (Date.now() - new Date(dt)) / 1000;
+
+  if (diff < 3600) return rtf.format(-Math.floor(diff / 60), "minute");
+  if (diff < 86400) return rtf.format(-Math.floor(diff / 3600), "hour");
+  return rtf.format(-Math.floor(diff / 86400), "day");
+}
 
 export {
   TOKEN_KEY,
   TINYMCE_API_KEY,
   generateRandomHexString,
   generateRandomHexColor,
+  prettyDateFormat,
 };

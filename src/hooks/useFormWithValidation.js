@@ -59,6 +59,27 @@ export function useFormWithValidation(
     });
   };
 
+  const handleDatePickerChange = (name, value, validateOrNot = true) => {
+    // Update value immediately
+    const nextValues = { ...values, [name]: value };
+    setValues(nextValues);
+
+    // Validate just the changed field, but keep other field errors unchanged.
+    if (validateOrNot) {
+      const fieldErrors = validate(nextValues)[name];
+      setErrors((prev) => {
+        const nextErrors = { ...prev, [name]: fieldErrors };
+        setIsValid(Object.values(nextErrors).every((message) => !message));
+        return nextErrors;
+      });
+    } else {
+      setErrors((prev) => {
+        const nextErrors = { ...prev, [name]: "" };
+        return nextErrors;
+      });
+    }
+  };
+
   const handleSubmit = (evt, onValidSubmit) => {
     evt.preventDefault();
     setIsSubmitted(true);
@@ -97,6 +118,7 @@ export function useFormWithValidation(
     isSubmitted,
     handleChange,
     handleWYSIWYGChange,
+    handleDatePickerChange,
     handleSubmit,
     resetForm,
     setValues,

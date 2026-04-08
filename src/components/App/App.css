@@ -1,7 +1,30 @@
+:root {
+  --main-teal: rgba(0, 84, 100);
+
+  --sys35e-bg: #f3e8ff;
+  --sys35e-font: #6b21a8;
+
+  --sys5e-bg: #e6f4ea;
+  --sys5e-font: #1b5e20;
+
+  --sys55e-bg: #e6f0fa;
+  --sys55e-font: #1e3a8a;
+
+  --group-type-bg: transparent;
+  --group-type-border: #d1d5db;
+  --group-type-base: #374151;
+
+  --group-type-online: #2e7d32;
+  --group-type-inperson: #c05621;
+  --group-type-hybrid: #1e3a8a;
+}
+
 .page {
-  background-color: #fff;
+  background-color: #f7f9fb;
   margin: 0;
   font-family: "CabinetGrotesk", Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 20px;
 }
 .page__content {
   max-width: 1360px;
@@ -58,7 +81,7 @@ a:visited {
 }
 
 .sidebar {
-  min-width: 185px;
+  min-width: 160px;
 }
 
 .avatar_type_default {
@@ -71,6 +94,26 @@ a:visited {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.google__button_type_continue {
+  border: 0;
+  cursor: pointer;
+  width: 189px;
+  height: 40px;
+  padding: 0;
+  background: transparent url(../../images/google_button_continue_neutral.svg)
+    top left no-repeat;
+}
+
+.google__button_type_continue:hover {
+  background-image: url(../../images/google_button_continue_dark.svg);
+}
+
+.alert {
+  padding: 4px;
+  background-color: #ffe599;
+  font-family: "CabinetGroteskBold";
 }
 
 @media screen and (max-width: 630px) {

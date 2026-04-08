@@ -1,3 +1,7 @@
+/*
+  NotFound.jsx
+  Generic 404 page
+*/
 import "./NotFound.css";
 import notFoundImage from "../../images/404.png";
 function NotFound({ message = "" }) {

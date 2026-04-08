@@ -1,28 +1,32 @@
 /*
     GroupForm.jsx
-    Form for creating a new group
+    Form for creating/editing a group
 */
 
-import "./GroupForm.css";
 import "../Form/Form.css";
+import "./GroupForm.css";
 import { useFormWithValidation } from "../../hooks/useFormWithValidation";
 import { useEffect, useState, useContext } from "react";
+import PageContext from "../../contexts/PageContext";
 import { useNavigate } from "react-router";
 import WYSIWYG from "../WYSIWYG/WYSIWYG";
 import DOMPurify from "dompurify";
 
-function GroupForm({ api, groupInfo, onSubmit, handleToggleEditForm }) {
+function GroupForm({ groupInfo, onSubmit, onGoBack }) {
   const [submitError, setSubmitError] = useState("");
   const navigate = useNavigate();
+  const { groupAPI } = useContext(PageContext);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   let defaultValues;
   if (groupInfo) {
     defaultValues = {
+      _id: groupInfo._id,
       name: groupInfo.name,
       summary: groupInfo.summary,
       description: groupInfo.description,
       system: groupInfo.system._id,
-      isHomebrew: groupInfo.story === "Homebrew" ? "true" : "false",
+      isHomebrew: groupInfo.isHomebrew,
       story: groupInfo.story,
       type: groupInfo.type,
       openSlots: groupInfo.slots.open,
@@ -30,11 +34,12 @@ function GroupForm({ api, groupInfo, onSubmit, handleToggleEditForm }) {
     };
   } else {
     defaultValues = {
+      _id: "",
       name: "",
       summary: "",
       description: "",
       system: "",
-      isHomebrew: "false",
+      isHomebrew: true,
       story: "",
       type: "",
       openSlots: 0,
@@ -55,6 +60,8 @@ function GroupForm({ api, groupInfo, onSubmit, handleToggleEditForm }) {
 
     if (!values.summary) {
       errors.summary = "Please enter a short summary";
+    } else if (values.summary.length > 500) {
+      errors.summary = "Summary can not be longer than 500 characters";
     }
 
     if (!values.description) {
@@ -94,6 +101,7 @@ function GroupForm({ api, groupInfo, onSubmit, handleToggleEditForm }) {
   } = useFormWithValidation(defaultValues, validate);
 
   const handleSubmitError = (err) => {
+    setIsSubmitting(false);
     if (err.message === "Failed to fetch") {
       setSubmitError("Could not connect to database. Please try again.");
     } else {
@@ -101,32 +109,40 @@ function GroupForm({ api, groupInfo, onSubmit, handleToggleEditForm }) {
     }
   };
 
-  //submit form: sanitize the data and submit to API
+  // submit form: sanitize the data and submit to API
   const handleFormSubmit = (evt) => {
+    setIsSubmitting(true);
     handleSubmit(evt, (trimmedValues) => {
       const slots = {
         open: parseInt(trimmedValues.openSlots),
         total: parseInt(trimmedValues.slotLimit),
       };
-      const story =
-        trimmedValues.isHomebrew === "true" ? "Homebrew" : trimmedValues.story;
-      const data = { ...trimmedValues, slots, story };
+      const data = { ...trimmedValues, slots };
       data.name = DOMPurify.sanitize(data.name);
       data.summary = DOMPurify.sanitize(data.summary);
-      data.story = DOMPurify.sanitize(data.story);
+      data.story = trimmedValues.isHomebrew
+        ? ""
+        : DOMPurify.sanitize(data.story);
       data.description = DOMPurify.sanitize(data.description);
 
       if (!groupInfo) {
         // submit new group
-        api
+        groupAPI
           .createGroup(data)
           .then((group) => {
+            setIsSubmitting(false);
             navigate(`/group/${group._id}?created=1`);
           })
           .catch(handleSubmitError);
       } else if (onSubmit) {
-        // submit edit group, go to parent component
-        onSubmit(data, handleSubmitError);
+        // submit edit group
+        groupAPI
+          .editGroup(groupInfo._id, values)
+          .then((group) => {
+            setIsSubmitting(false);
+            onSubmit(group);
+          })
+          .catch(handleSubmitError);
       }
     });
   };
@@ -184,28 +200,6 @@ function GroupForm({ api, groupInfo, onSubmit, handleToggleEditForm }) {
             {errors.summary}
           </span>
         </label>
-        {/*<fieldset
-          className={`form__fieldset ${errors.name ? "form__fieldset_has-error" : ""}`}
-        >
-          <div className="form__checkbox">
-          <input
-            type="checkbox"
-            className="form__checkbox-input"
-            id="item-check-homebrew"
-            name="isHomebrew"
-            value="true"
-            checked={values.isHomebrew}
-            onChange={handleChange}
-          />
-          <label
-            htmlFor="item-check-homebrew"
-            className="form__label form__label_type_checkbox"
-          >
-            Click he
-          </label>
-        </div>
-        </fieldset>*/}
-
         <div className="groupform__details">
           <div className="groupform__detail">
             <label
@@ -225,7 +219,7 @@ function GroupForm({ api, groupInfo, onSubmit, handleToggleEditForm }) {
               </select>
             </label>
           </div>
-          {values.isHomebrew === "false" ? (
+          {(!values.isHomebrew || values.isHomebrew === "false") && (
             <div className="groupform__detail">
               <label
                 htmlFor="group-story"
@@ -244,8 +238,6 @@ function GroupForm({ api, groupInfo, onSubmit, handleToggleEditForm }) {
                 />
               </label>
             </div>
-          ) : (
-            ""
           )}
         </div>
         <span
@@ -384,17 +376,22 @@ function GroupForm({ api, groupInfo, onSubmit, handleToggleEditForm }) {
           {errors.description}
         </span>
         <span
-          className={`form__error ${submitError ? "form__error_has-error" : ""}`}
+          className={`form__error form__error_bold ${submitError ? "form__error_has-error" : ""}`}
         >
           {submitError}
         </span>
         <button
           className={`form__submit-btn form__submit-btn-type_application`}
           type="submit"
+          disabled={isSubmitting}
         >
           {groupInfo ? "Edit Group" : "Create Group"}
         </button>
-        <button className="groupform_cancel-btn" onClick={handleToggleEditForm}>
+        <button
+          className="groupform_cancel-btn"
+          onClick={onGoBack}
+          disabled={isSubmitting}
+        >
           Cancel
         </button>
       </form>

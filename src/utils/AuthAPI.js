@@ -1,6 +1,6 @@
 /*
   AuthAPI.js
-  
+  Handles User Auth functions
 */
 import APIBase from "./APIBase.js";
 
@@ -47,6 +47,33 @@ export default class AuthAPI extends APIBase {
     return this._makeAPICall({
       endpoint: `/users/${username}`,
       method: "GET",
+    });
+  }
+
+  // Verify OAuth code received when user is prompted for account access
+  verifyOAuthCallback(code) {
+    return this._makeAPICall({
+      endpoint: "/oauth2callback",
+      method: "POST",
+      body: JSON.stringify({ code }),
+      requireToken: true,
+      additionalHeaders: {
+        // Google documentation says to include this
+        "X-Requested-With": "XmlHttpRequest",
+      },
+    });
+  }
+
+  // Revoke OAuth access
+  revokeOAuthAccess() {
+    return this._makeAPICall({
+      endpoint: "/revokeoauth2",
+      method: "POST",
+      requireToken: true,
+      additionalHeaders: {
+        // Google documentation says to include this
+        "X-Requested-With": "XmlHttpRequest",
+      },
     });
   }
 }

@@ -10,8 +10,8 @@ import UserAvatar from "../UserAvatar/UserAvatar";
 function GroupSidebar({ groupInfo }) {
   return (
     <aside className="sidebar group__sidebar">
+      <div className="gm__header">Game Master</div>
       <div className="group__gm">
-        <div className="gm__header">Game Master</div>
         <Link
           to={`/user/${groupInfo.owner.username}`}
           className="group__avatar"
@@ -23,22 +23,20 @@ function GroupSidebar({ groupInfo }) {
         </Link>
       </div>
       <div className="players__header">Players</div>
-      <div className="group__players">
-        {!groupInfo.members || !groupInfo.members.length ? (
-          <div>No players found</div>
-        ) : (
-          groupInfo.members.map((member) => (
-            <div className="group__player" key={member.username}>
-              <Link to={`/user/${member.username}`} className="group__avatar">
-                <UserAvatar avatarClass="group" user={member} />
-              </Link>
-              <Link to={`/user/${member.username}`} className="player__name">
-                {member.username}
-              </Link>
-            </div>
-          ))
-        )}
-      </div>
+      {!groupInfo.members || !groupInfo.members.length ? (
+        <div>No players found</div>
+      ) : (
+        groupInfo.members.map((member) => (
+          <div className="group__player" key={member.username}>
+            <Link to={`/user/${member.username}`} className="group__avatar">
+              <UserAvatar avatarClass="group" user={member} />
+            </Link>
+            <Link to={`/user/${member.username}`} className="player__name">
+              {member.username}
+            </Link>
+          </div>
+        ))
+      )}
     </aside>
   );
 }

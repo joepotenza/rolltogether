@@ -8,7 +8,7 @@
   This is separate from Avatar.js which uses the avatar APIs to generate new avatars
 */
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import CurrentUserContext from "../../contexts/CurrentUserContext";
 import isSvg from "is-svg";
 
@@ -18,9 +18,9 @@ function UserAvatar({
 }) {
   const { currentUser } = useContext(CurrentUserContext);
   const userInfo = user.username ? user : currentUser;
-  const isAvatarValid = isSvg(userInfo.avatar);
+  const [isAvatarValid, setIsAvatarValid] = useState(isSvg(userInfo.avatar));
 
-  //If the avatar doesn't load, we fall back to the default display
+  //If the avatar doesn't load for some reason, we fall back to the default display
   function handleAvatarLoadError() {
     setIsAvatarValid(false);
   }

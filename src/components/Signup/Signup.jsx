@@ -1,3 +1,8 @@
+/*
+  Signup.jsx
+  Signup Form
+*/
+
 import "./Signup.css";
 import "../Form/Form.css";
 import validator from "validator";
@@ -5,10 +10,11 @@ import { useFormWithValidation } from "../../hooks/useFormWithValidation";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import AvatarGenerator from "../AvatarGenerator/AvatarGenerator";
-import PasswordStrengthChecker from "../PasswordStrengthChecker/PasswordStrengthChecker";
+// import PasswordStrengthChecker from "../PasswordStrengthChecker/PasswordStrengthChecker";
 
 function Signup({ onSubmit }) {
   const [signupError, setSignupError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const defaultValues = {
     name: "",
@@ -27,16 +33,14 @@ function Signup({ onSubmit }) {
       errors.username = "Please enter a username.";
     } else if (values.username.length < 3) {
       errors.username = "Username must be at least 3 characters.";
-    } else if (values.username.length > 30) {
-      errors.username = "Username can not be longer than 30 characters.";
+    } else if (values.username.length > 20) {
+      errors.username = "Username can not be longer than 20 characters.";
     } else if (regex.test(values.username)) {
       errors.username = "Username can not contain spaces or special characters";
     }
 
     if (!values.name) {
       errors.name = "Please enter your name.";
-    } else if (values.name.length < 2) {
-      errors.name = "Name must be at least 2 characters.";
     } else if (values.name.length > 30) {
       errors.name = "Name can not be longer than 30 characters.";
     }
@@ -80,6 +84,7 @@ function Signup({ onSubmit }) {
 
   // Handle any errors caught by .catch() when submitting the form
   const handleSignupError = (err) => {
+    setIsSubmitting(false);
     if (err.message === "Failed to fetch") {
       setSignupError("Could not connect to database. Please try again.");
     } else {
@@ -88,21 +93,22 @@ function Signup({ onSubmit }) {
   };
 
   const handleFormSubmit = (evt) => {
+    setIsSubmitting(true);
     handleSubmit(evt, (trimmedValues) =>
-      onSubmit(trimmedValues, resetForm, handleSignupError),
+      onSubmit(
+        trimmedValues,
+        () => {
+          setIsSubmitting(false);
+          resetForm();
+        },
+        handleSignupError,
+      ),
     );
   };
 
   const handleAvatarChange = (avatar) => {
     setValues((prevValues) => {
       const nextValues = { ...prevValues, avatar };
-      /*Update errors for the avatar field
-      const fieldErrors = validate(nextValues).avatar;
-      setErrors((prevErrors) => {
-        const nextErrors = { ...prevErrors, avatar: fieldErrors };
-        setIsValid(Object.values(nextErrors).every((message) => !message));
-        return nextErrors;
-      });*/
       return nextValues;
     });
   };
@@ -142,7 +148,7 @@ function Signup({ onSubmit }) {
             className={`form__input ${errors.username ? "form__input_has-error" : ""}`}
             id="signup-username"
             placeholder="Username"
-            maxLength={30}
+            maxLength={20}
           />
           <span
             className={`form__error ${errors.username ? "form__error_has-error" : ""}`}
@@ -269,6 +275,7 @@ function Signup({ onSubmit }) {
         <button
           className={`form__submit-btn form__submit-btn-type_signup`}
           type="submit"
+          disabled={isSubmitting}
         >
           Sign Up
         </button>

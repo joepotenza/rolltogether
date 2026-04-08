@@ -1,29 +1,27 @@
 /*
     SearchFilters.jsx
+    Sub component of Main.jsx: Filter sidebar for the main group search page
 */
 
 import "./SearchFilters.css";
 
 function SearchFilters({ filters, onFilterChange }) {
   const handleFilterChange = () => {
+    const hb = document.querySelector(".filter__isHomebrew").value;
     const newFilters = {
       system: document.querySelector(".filter__system").value,
       type: document.querySelector(".filter__type").value,
-      isHomebrew: null,
+      isHomebrew: hb === "" ? null : hb === "true",
+      openSlots: true,
     };
-    const story = document.querySelector(".filter__story").value;
-    if (story === "Homebrew") {
-      newFilters.isHomebrew = true;
-    } else if (story === "Pre-Made") {
-      newFilters.isHomebrew = false;
-    }
     onFilterChange(newFilters);
   };
   return (
     <aside className="sidebar sidebar__filters">
-      <h2 className="filters__title">Filters</h2>
+      <h2 className="filters__title">Filter Groups:</h2>
       <form className="filters__form">
         <select
+          name="system"
           className="filters__select filter__system"
           onChange={handleFilterChange}
           defaultValue={filters.system}
@@ -37,6 +35,7 @@ function SearchFilters({ filters, onFilterChange }) {
           <option value="69c9a1572f30caed2bb17329">D&amp;D 5.5e</option>
         </select>
         <select
+          name="type"
           className="filters__select filter__type"
           onChange={handleFilterChange}
           defaultValue={filters.type}
@@ -49,7 +48,8 @@ function SearchFilters({ filters, onFilterChange }) {
           <option value="hybrid">Hybrid</option>
         </select>
         <select
-          className="filters__select filter__story"
+          name="isHomebrew"
+          className="filters__select filter__isHomebrew"
           onChange={handleFilterChange}
           defaultValue={
             filters.isHomebrew
@@ -62,8 +62,8 @@ function SearchFilters({ filters, onFilterChange }) {
           <option value="">
             {filters.isHomebrew === null ? "Story Type" : "All Stories"}
           </option>
-          <option value="Homebrew">Homebrew</option>
-          <option value="Pre-Made">Pre-Made</option>
+          <option value="true">Homebrew</option>
+          <option value="false">Pre-Made</option>
         </select>
       </form>
     </aside>

@@ -8,67 +8,123 @@
 import "./Profile.css";
 
 import { useState, useEffect, useContext } from "react";
-import { Link, useParams, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router";
+import { useLoadMonitor } from "../../hooks/useLoadMonitor";
+import { useErrorHandler } from "../../hooks/useErrorHandler";
 import CurrentUserContext from "../../contexts/CurrentUserContext";
+import PageContext from "../../contexts/PageContext";
 import PreLoader from "../PreLoader/PreLoader";
 import NotFound from "../NotFound/NotFound";
 import ProfileForm from "../ProfileForm/ProfileForm";
 import UserAvatar from "../UserAvatar/UserAvatar";
 import SearchResults from "../SearchResults/SearchResults";
 
-function Profile({ authAPI, groupAPI, onSubmit, onFetchError }) {
+function Profile({ onSubmit, onReceiveOAuthCallback, onConfirmRevokeOAuth }) {
   const { username } = useParams();
   const navigate = useNavigate();
 
   const { currentUser, isLoggedIn } = useContext(CurrentUserContext);
-  const [profileData, setProfileData] = useState({});
-  const [isProfileLoading, setIsProfileLoading] = useState(true);
-
-  const [isGMGroupListLoading, setIsGMGroupListLoading] = useState(true);
-  const [userGroupsAsGM, setUserGroupsAsGM] = useState([]);
-
-  const [isMemberGroupListLoading, setIsMemberGroupListLoading] =
-    useState(true);
-  const [userGroupsAsMember, setUserGroupsAsMember] = useState([]);
+  const { authAPI, groupAPI } = useContext(PageContext);
 
   const [isOwnProfile, setIsOwnProfile] = useState(false);
+
+  const { onFetchError, ErrorUI } = useErrorHandler(
+    typeof username !== "undefined",
+  ); // Only process 404 errors when username is present (viewing a public profile page)
 
   const handleEditProfile = (values, onSuccess, onError) => {
     onSubmit(values, onSuccess, onError);
   };
 
-  const getUserProfile = () => {
+  /**
+   * Loading Monitor for Profile Data
+   */
+  async function fetchUserProfile() {
     setIsProfileLoading(true);
-    authAPI
-      .getUserProfile({ username })
-      .then((user) => {
-        setProfileData(user);
-        setIsProfileLoading(false);
-      })
-      .catch(onFetchError);
-  };
+    try {
+      const user = await authAPI.getUserProfile({ username });
+      return user || {};
+    } catch (err) {
+      onFetchError(err);
+      return {};
+    }
+  }
 
-  const getUserGroupsAsGM = (userId = profileData._id) => {
-    groupAPI
-      .getGroups({ owner: userId })
-      .then((data) => {
-        if (data.groups) setUserGroupsAsGM(data.groups);
-        setIsGMGroupListLoading(false);
-      })
-      .catch(onFetchError);
-  };
+  const {
+    isProfileLoading,
+    setIsProfileLoading,
+    profileData,
+    setProfileData,
+    getUserProfile,
+  } = useLoadMonitor({
+    variableName: "isProfileLoading",
+    variableSetterName: "setIsProfileLoading",
+    initialValue: true,
+    loadingFunction: fetchUserProfile,
+    resultVariableName: "profileData",
+    resultVariableSetterName: "setProfileData",
+    initialResultValue: {},
+    functionName: "getUserProfile",
+  });
 
-  const getUserGroupsAsMember = (userId = profileData._id) => {
-    groupAPI
-      .getGroups({ member: userId })
-      .then((data) => {
-        if (data.groups) {
-          setUserGroupsAsMember(data.groups);
-        }
-        setIsMemberGroupListLoading(false);
-      })
-      .catch(onFetchError);
-  };
+  /**
+   * Loading Monitor for GM Groups
+   */
+  async function fetchUserGroupsAsGM(userId = profileData._id) {
+    try {
+      const data = await groupAPI.getGroups({ owner: userId });
+      return data?.groups || [];
+    } catch (err) {
+      onFetchError(err);
+    }
+    return [];
+  }
+
+  const {
+    isGMGroupListLoading,
+    setIsGMGroupListLoading,
+    userGroupsAsGM,
+    setUserGroupsAsGM,
+    getUserGroupsAsGM,
+  } = useLoadMonitor({
+    variableName: "isGMGroupListLoading",
+    variableSetterName: "setIsGMGroupListLoading",
+    initialValue: true,
+    loadingFunction: fetchUserGroupsAsGM,
+    resultVariableName: "userGroupsAsGM",
+    resultVariableSetterName: "setUserGroupsAsGM",
+    initialResultValue: {},
+    functionName: "getUserGroupsAsGM",
+  });
+
+  /**
+   * Loading Monitor for Member Groups
+   */
+  async function fetchUserGroupsAsMember(userId = profileData._id) {
+    try {
+      const data = await groupAPI.getGroups({ member: userId });
+      return data?.groups || [];
+    } catch (err) {
+      onFetchError(err);
+    }
+    return [];
+  }
+  const {
+    isMemberGroupListLoading,
+    setIsMemberGroupListLoading,
+    userGroupsAsMember,
+    setUserGroupsAsMember,
+    getUserGroupsAsMember,
+  } = useLoadMonitor({
+    variableName: "isMemberGroupListLoading",
+    variableSetterName: "setIsMemberGroupListLoading",
+    initialValue: true,
+    loadingFunction: fetchUserGroupsAsMember,
+    resultVariableName: "userGroupsAsMember",
+    resultVariableSetterName: "setUserGroupsAsMember",
+    initialResultValue: {},
+    functionName: "getUserGroupsAsMember",
+  });
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -109,58 +165,57 @@ function Profile({ authAPI, groupAPI, onSubmit, onFetchError }) {
       getUserGroupsAsGM();
       getUserGroupsAsMember();
     }
-  }, [profileData, isOwnProfile, isProfileLoading]);
+  }, [profileData._id, isOwnProfile, isProfileLoading]);
 
   return (
-    <div className="profile">
-      {/*<PreLoader />*/}
-      {isProfileLoading ? (
-        <></>
-      ) : !profileData.username ? (
-        <NotFound message={"User not found"} />
-      ) : (
-        <>
-          <aside className="sidebar sidebar__profile">
-            <UserAvatar avatarClass="profile" user={profileData} />
-            <h1 className="profile__username">{profileData.username}</h1>
-          </aside>
-          <main className="profile__content">
-            {isOwnProfile && (
-              <ProfileForm
-                userInfo={currentUser}
-                onSubmit={handleEditProfile}
-              />
-            )}
-            <div className="profile__groups_gm">
-              {isGMGroupListLoading ? (
-                <></>
-              ) : (
-                <>
-                  <h2 className="profile__subtitle">Groups as GM</h2>
+    ErrorUI || (
+      <div className="profile">
+        {isProfileLoading ? (
+          <PreLoader fill />
+        ) : !profileData.username ? (
+          <NotFound message={"User not found"} />
+        ) : (
+          <>
+            <aside className="sidebar sidebar__profile">
+              <UserAvatar avatarClass="profile" user={profileData} />
+              <h1 className="profile__username">{profileData.username}</h1>
+            </aside>
+            <main className="profile__content">
+              {isOwnProfile && (
+                <ProfileForm
+                  userInfo={currentUser}
+                  onSubmit={handleEditProfile}
+                  onReceiveOAuthCallback={onReceiveOAuthCallback}
+                  onConfirmRevokeOAuth={onConfirmRevokeOAuth}
+                />
+              )}
+              <div className="profile__groups_gm">
+                <h2 className="profile__subtitle">Groups I GM For</h2>
+                {isGMGroupListLoading ? (
+                  <PreLoader fill />
+                ) : (
                   <SearchResults
                     results={userGroupsAsGM}
                     className="profile__results"
                   />
-                </>
-              )}
-            </div>
-            <div className="profile__groups_member">
-              {isMemberGroupListLoading ? (
-                <></>
-              ) : (
-                <>
-                  <h2 className="profile__subtitle">Groups as Member</h2>
+                )}
+              </div>
+              <div className="profile__groups_member">
+                <h2 className="profile__subtitle">Groups as a Member</h2>
+                {isMemberGroupListLoading ? (
+                  <PreLoader fill />
+                ) : (
                   <SearchResults
                     results={userGroupsAsMember}
                     className="profile__results"
                   />
-                </>
-              )}
-            </div>
-          </main>
-        </>
-      )}
-    </div>
+                )}
+              </div>
+            </main>
+          </>
+        )}
+      </div>
+    )
   );
 }
 

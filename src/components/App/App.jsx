@@ -8,6 +8,7 @@ import { Routes, Route, useLocation, useNavigate } from "react-router";
 import "./App.css";
 import { TOKEN_KEY } from "../../utils/constants.js";
 import CurrentUserContext from "../../contexts/CurrentUserContext";
+import PageContext from "../../contexts/PageContext";
 import Header from "../Header/Header";
 import Main from "../Main/Main";
 import Footer from "../Footer/Footer";
@@ -21,20 +22,14 @@ import GroupForm from "../GroupForm/GroupForm";
 import NotFound from "../NotFound/NotFound";
 import ErrorPage from "../ErrorPage/ErrorPage";
 
-/*import RegisterModal from "../RegisterModal/RegisterModal";
- */
-
-const baseUrl =
-  process.env.NODE_ENV === "production"
-    ? "https://api.rolltogether.online"
-    : "http://localhost:3001";
+// define API options and create APIs for Authentication and Group management
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiOptions = {
   baseUrl,
   headers: {
     "Content-Type": "application/json",
   },
 };
-
 import AuthAPI from "../../utils/AuthAPI.js";
 const auth = new AuthAPI(apiOptions);
 import GroupAPI from "../../utils/GroupAPI.js";
@@ -55,12 +50,25 @@ function App() {
   const [activeModal, setActiveModal] = useState("");
   const [currentUser, setCurrentUser] = useState(emptyUserInfo);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    // If there's no token, we aren't "checking" anything; we're just unauthenticated.
+    return !!token;
+  });
   const [hasFetchError, setHasFetchError] = useState(false);
+  const [has404Error, setHas404Error] = useState(false);
 
   // Handler to display "log in" modal
   function handleOpenLoginModal() {
     setActiveModal("user-login");
+  }
+  // Handler to display "session notes" modal
+  function handleOpenSessionNotesModal() {
+    setActiveModal("session-notes");
+  }
+  // Handler to display modal for confirming delete action (sessions, revoking google account access)
+  function handleOpenDeleteModal() {
+    setActiveModal("delete");
   }
 
   // Handler to close any active modal
@@ -153,15 +161,78 @@ function App() {
   /* Global fetch error handler
   Since every page has at least one db call, this handles fetch connection errors cleanly to update
   state and show a clean error page instead of breaking the site design
-  Set hasFetchError = true to override Routes handling, and log the error to the console
-  (If the initial requests succeed but a request further into the page fail, they can be handled individually by their components)
+  (If the initial requests succeed but a request further into the page fail, they may be handled individually by their components)
    */
   const handleFetchError = (err) => {
-    setHasFetchError(true);
+    if (err.statusCode && err.statusCode === 404) {
+      setHas404Error(true);
+    } else {
+      setHasFetchError(true);
+    }
     console.error(err);
   };
 
-  // runs on render
+  /*
+    handleReceiveOAuthCallback
+    Handle the response from Google OAuth integration
+    Sends code to back end for verification and then filters that down to the UI
+  */
+  const handleReceiveOAuthCallback = (response, scope, onComplete) => {
+    const result = {
+      isOk: false,
+      message:
+        "Unable to authorize your Google Calendar account. Please try again and ensure you allow access to all Google Calendar features.",
+    };
+    try {
+      if (!response || !response.code || !response.scope) {
+        onComplete(result); //FAIL
+      } else {
+        // Make sure all the scopes were approved
+        const scopes = scope.split(" ");
+        for (let i = 0; i < scopes.length; i++) {
+          if (!response.scope.includes(scopes[i])) {
+            onComplete(result); //FAIL
+            return;
+          }
+        }
+        auth
+          .verifyOAuthCallback(response.code)
+          .then((data) => {
+            result.isOk = true;
+            result.message = data.message;
+            getCurrentUserData(); // update user data, which should filter down to update the display
+            onComplete(result); //SUCCESS
+          })
+          .catch((err) => {
+            console.err(err);
+            result.isOk = false;
+            result.message = err.message;
+            onComplete(result); //FAIL
+          });
+      }
+    } catch (err) {
+      console.error(err);
+      result.isOk = false;
+      result.message = err.message;
+      onComplete(result);
+    }
+  };
+
+  /*
+    handleConfirmRevokeOAuth
+    Tells the back-end to revoke Google Account access
+  */
+  const handleConfirmRevokeOAuth = (onError) => {
+    auth
+      .revokeOAuthAccess()
+      .then((response) => {
+        handleCloseModal();
+        getCurrentUserData(); // update user data, which should filter down to update the display
+      })
+      .catch(onError);
+  };
+
+  // runs on mount
   useEffect(() => {
     // Check local storage for user token
     const token = localStorage.getItem(TOKEN_KEY);
@@ -169,113 +240,108 @@ function App() {
       auth.setUserToken(token);
       groupAPI.setUserToken(token);
       getCurrentUserData();
-    } else {
-      setIsCheckingAuth(false);
     }
   }, []);
 
   return (
-    <CurrentUserContext.Provider
-      value={{ currentUser, isLoggedIn, isCheckingAuth }}
+    <PageContext.Provider
+      value={{
+        activeModal,
+        handleOpenSessionNotesModal,
+        handleOpenDeleteModal,
+        handleCloseModal,
+        authAPI: auth,
+        groupAPI,
+      }}
     >
-      <div className="page">
-        <div className="page__content">
-          <Header
-            loginHandler={handleOpenLoginModal}
-            logoutHandler={handleUserLogout}
-          />
-          {hasFetchError ? (
-            <ErrorPage type="ConnectionError" />
-          ) : (
-            <Routes>
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile
-                      authAPI={auth}
-                      groupAPI={groupAPI}
-                      onSubmit={handleEditProfileSubmit}
-                      onFetchError={handleFetchError}
-                    />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/user/:username"
-                element={
-                  <ProtectedRoute>
-                    <Profile
-                      authAPI={auth}
-                      groupAPI={groupAPI}
-                      onFetchError={handleFetchError}
-                    />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/login"
-                element={
-                  <ProtectedRoute anonymous>
-                    <Login onSubmit={handleLoginSubmit} />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/signup"
-                element={
-                  <ProtectedRoute anonymous>
-                    <Signup onSubmit={handleSignupSubmit} />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/addgroup"
-                element={
-                  <ProtectedRoute>
-                    <GroupForm api={groupAPI} />
-                  </ProtectedRoute>
-                }
-              />
+      <CurrentUserContext.Provider
+        value={{ currentUser, isLoggedIn, isCheckingAuth }}
+      >
+        <div className="page">
+          <div className="page__content">
+            <Header
+              loginHandler={handleOpenLoginModal}
+              logoutHandler={handleUserLogout}
+            />
+            {hasFetchError ? (
+              <ErrorPage type="ConnectionError" />
+            ) : has404Error ? (
+              <NotFound />
+            ) : (
+              <Routes key={location.pathname}>
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile
+                        onSubmit={handleEditProfileSubmit}
+                        onFetchError={handleFetchError}
+                        onReceiveOAuthCallback={handleReceiveOAuthCallback}
+                        onConfirmRevokeOAuth={handleConfirmRevokeOAuth}
+                      />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/user/:username"
+                  element={
+                    <ProtectedRoute>
+                      <Profile onFetchError={handleFetchError} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/login"
+                  element={
+                    <ProtectedRoute anonymous>
+                      <Login onSubmit={handleLoginSubmit} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/signup"
+                  element={
+                    <ProtectedRoute anonymous>
+                      <Signup onSubmit={handleSignupSubmit} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/addgroup"
+                  element={
+                    <ProtectedRoute>
+                      <GroupForm />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/editgroup/:groupId"
-                element={
-                  <ProtectedRoute>
-                    <GroupForm api={groupAPI} />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/group/:groupId"
+                  element={<Group onFetchError={handleFetchError} />}
+                />
 
-              <Route
-                path="/group/:groupId"
-                element={
-                  <Group api={groupAPI} onFetchError={handleFetchError} />
-                }
-              />
+                <Route
+                  path="/"
+                  element={<Main onFetchError={handleFetchError} />}
+                />
 
-              <Route
-                path="/"
-                element={
-                  <Main groupAPI={groupAPI} onFetchError={handleFetchError} />
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          )}
-          <Footer />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            )}
+            <Footer />
+          </div>
         </div>
-      </div>
-      <LoginModal
-        isOpen={activeModal === "user-login"}
-        onClose={handleCloseModal}
-        onSubmit={handleLoginSubmit}
-        signupHandler={() => {
-          handleCloseModal();
-          navigate("/signup");
-        }}
-      ></LoginModal>
-    </CurrentUserContext.Provider>
+        <LoginModal
+          isOpen={activeModal === "user-login"}
+          onClose={handleCloseModal}
+          onSubmit={handleLoginSubmit}
+          signupHandler={() => {
+            handleCloseModal();
+            navigate("/signup");
+          }}
+        ></LoginModal>
+      </CurrentUserContext.Provider>
+    </PageContext.Provider>
   );
 }
 export default App;

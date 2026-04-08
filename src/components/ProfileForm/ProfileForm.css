@@ -1,0 +1,47 @@
+.profile__manager {
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 32px;
+}
+.profile__form-fields {
+  max-width: 240px;
+}
+.profile__google {
+  flex-grow: 2;
+}
+.profile__title {
+  font-family: "CabinetGroteskBold";
+  font-size: 32px;
+  line-height: 28px;
+  margin: 0 0 24px;
+}
+.profile__google-status {
+  margin: 24px 0;
+  color: #38761d;
+  font-family: "CabinetGroteskBold";
+}
+.profile__google-error {
+  color: #de4545;
+}
+.profile__google-text {
+  margin: 24px 0 0 0;
+}
+.profile__google-btn {
+  margin: 24px 0;
+}
+.form__submit-btn-type_revoke {
+  width: 280px;
+  background-color: #de4545;
+}
+
+.profile__success {
+  color: #38761d;
+  font-family: "CabinetGroteskBold";
+  margin-top: 20px;
+  display: none;
+}
+.profile__success_visible {
+  display: block;
+}

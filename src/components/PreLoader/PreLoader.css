@@ -11,11 +11,18 @@
   right: 0;
   bottom: 0;
   margin: auto;
+  visibility: hidden;
   animation: spin 0.75s infinite linear;
+  animation-delay: 0.5s; /* The delay before it starts. This helps prevent flashing on page load */
+  animation-fill-mode: forwards; /* Stays visible after animation */
 }
 
 @keyframes spin {
+  0% {
+    visibility: hidden;
+  }
   100% {
     transform: rotate(360deg);
+    visibility: visible;
   }
 }

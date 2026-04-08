@@ -4,16 +4,17 @@
 */
 
 import "../Form/Form.css";
-import { useEffect } from "react";
+import "./GroupApplication.css";
+import { useEffect, useState } from "react";
 import { useFormWithValidation } from "../../hooks/useFormWithValidation";
 
-function GroupApplication({ onSubmit }) {
+function GroupApplication({ groupInfo, onSubmit, myApplications }) {
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const defaultValues = {
     message: "",
   };
-
-  const editorToolbar =
-    "blocks | bold italic forecolor | link image | bullist numlist outdent indent | removeformat";
 
   const validate = (values) => {
     const errors = {};
@@ -28,8 +29,28 @@ function GroupApplication({ onSubmit }) {
   const { values, handleChange, errors, resetForm, handleSubmit } =
     useFormWithValidation(defaultValues, validate);
 
+  const handleSubmitError = (err) => {
+    setIsSubmitting(false);
+    if (err.message === "Failed to fetch") {
+      setSubmitError("Could not connect to database. Please try again.");
+    } else {
+      setSubmitError(err.message);
+    }
+  };
+
   const handleFormSubmit = (evt) => {
-    handleSubmit(evt, (trimmedValues) => onSubmit(trimmedValues, resetForm));
+    setIsSubmitting(true);
+    handleSubmit(evt, (trimmedValues) =>
+      onSubmit(
+        trimmedValues,
+        () => {
+          resetForm();
+          setSubmitError("");
+          setIsSubmitting(false);
+        },
+        handleSubmitError,
+      ),
+    );
   };
 
   useEffect(() => {
@@ -38,7 +59,7 @@ function GroupApplication({ onSubmit }) {
 
   return (
     <div className="group__application">
-      <h2 className="application__header">Apply for Group</h2>
+      <h2 className="application__header">Apply for This Group</h2>
       <p>
         Use the field below to include a message to the GM. You should provide
         some information about yourself, your gaming experience, what type of
@@ -46,31 +67,32 @@ function GroupApplication({ onSubmit }) {
         email notification when the GM approves or denies your application.
       </p>
       <form name="group-application" onSubmit={handleFormSubmit}>
-        <label
-          htmlFor="application-message"
-          className={`form__label ${errors.message ? "form__label_has-error" : ""}`}
+        <textarea
+          name="message"
+          value={values.message}
+          onChange={handleChange}
+          className={`form__input form__textarea ${errors.message ? "form__input_has-error" : ""}`}
+          id="application-message"
+          placeholder="Enter a short message to send to the GM"
+          maxLength={500}
+        />
+        <span
+          className={`form__error form__error_bold ${errors.message ? "form__error_has-error" : ""}`}
+          id="application-message-error"
         >
-          <textarea
-            name="message"
-            value={values.message}
-            onChange={handleChange}
-            className={`form__input form__textarea ${errors.message ? "form__input_has-error" : ""}`}
-            id="application-message"
-            placeholder="Enter a short message to send to the GM"
-            maxLength={500}
-          />
-          <span
-            className={`form__error ${errors.message ? "form__error_has-error" : ""}`}
-            id="application-message-error"
-          >
-            {errors.message}
-          </span>
-        </label>
+          {errors.message}
+        </span>
+        <span
+          className={`form__error form__error_bold ${submitError ? "form__error_has-error" : ""}`}
+        >
+          {submitError}
+        </span>
         <button
           className="form__submit-btn form__submit-btn-type_application"
           type="submit"
+          disabled={isSubmitting}
         >
-          Apply for Group
+          Submit Application
         </button>
       </form>
     </div>

@@ -1,12 +1,23 @@
 /*
     PasswordStrengthChecker.jsx
-    Password Strength Check Bag
+    Password Strength Meter for registration
+
+    DISABLED FOR NOW
 */
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import zxcvbn from "zxcvbn";
 
 const PasswordStrengthChecker = ({ password, onUpdate }) => {
-  const [strength, setStrength] = useState(null);
+  const strength = useMemo(() => {
+    if (!password) {
+      return null;
+    }
+    const evaluation = zxcvbn(password);
+    if (typeof onUpdate === "function") {
+      onUpdate(evaluation);
+    }
+    return evaluation;
+  }, [password, onUpdate]);
 
   const labels = {
     0: "Worst",
@@ -15,14 +26,6 @@ const PasswordStrengthChecker = ({ password, onUpdate }) => {
     3: "Good",
     4: "Strong",
   };
-
-  useEffect(() => {
-    const evaluation = zxcvbn(password);
-    setStrength(evaluation);
-    if (typeof onUpdate === "function") {
-      onUpdate(evaluation);
-    }
-  }, [password]);
 
   return (
     <>

@@ -1,6 +1,7 @@
 .sidebar__filters {
-  background-color: #eee;
+  background-color: #fff;
   padding: 6px 0 12px 8px;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
 }
 
@@ -10,13 +11,23 @@
   font-size: 20px;
 }
 
-.filters__select,
-.filter__homebrew {
+.filters__select {
   display: block;
   margin-top: 12px;
-}
-
-.filters__select {
   padding: 4px;
   border-radius: 6px;
+  min-width: 125px;
+}
+
+@media screen and (max-width: 630px) {
+  .sidebar__filters {
+  }
+  .filters__form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-right: 10px;
+    align-items: center;
+    justify-content: space-evenly;
+  }
 }

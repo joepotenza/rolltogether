@@ -185,13 +185,16 @@
   font-family: "CabinetGroteskBold";
 }
 
+@media screen and (max-width: 1024px) {
+  .group__sidebar {
+    width: 160px;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .group__info {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-  }
-  .group__sidebar {
-    width: 160px;
   }
 }
 
@@ -200,7 +203,8 @@
     flex-direction: column;
   }
   .group__sidebar {
-    width: 100%;
+    width: 95%;
+    margin: 0 auto;
   }
   .group__system,
   .group__type,

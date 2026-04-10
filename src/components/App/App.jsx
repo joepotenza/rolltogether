@@ -19,11 +19,13 @@ import Signup from "../Signup/Signup.jsx";
 import Profile from "../Profile/Profile";
 import Group from "../Group/Group";
 import GroupForm from "../GroupForm/GroupForm";
+import Privacy from "../Privacy/Privacy";
+import TermsOfService from "../TermsOfService/TermsOfService";
 import NotFound from "../NotFound/NotFound";
 import ErrorPage from "../ErrorPage/ErrorPage";
 
 // define API options and create APIs for Authentication and Group management
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const baseUrl = import.meta.env?.VITE_API_BASE_URL || "http://localhost:3001";
 const apiOptions = {
   baseUrl,
   headers: {
@@ -31,7 +33,7 @@ const apiOptions = {
   },
 };
 import AuthAPI from "../../utils/AuthAPI.js";
-const auth = new AuthAPI(apiOptions);
+const authAPI = new AuthAPI(apiOptions);
 import GroupAPI from "../../utils/GroupAPI.js";
 const groupAPI = new GroupAPI(apiOptions);
 
@@ -60,7 +62,7 @@ function App() {
 
   // Handler to display "log in" modal
   function handleOpenLoginModal() {
-    setActiveModal("user-login");
+    if (!isCheckingAuth) setActiveModal("user-login");
   }
   // Handler to display "session notes" modal
   function handleOpenSessionNotesModal() {
@@ -78,34 +80,24 @@ function App() {
 
   // User Signup
   // After successful signup, we submit the login in the background
-  function handleSignupSubmit(data, afterSubmit, onError) {
-    auth
-      .registerUser(data)
-      .then(() => {
-        // User registered successfully, handle login (be sure to use properties of "data" to get password)
-        handleLoginSubmit(
-          { username: data.username, password: data.password },
-          afterSubmit,
-        );
-      })
-      .catch(onError);
+  function handleSignupComplete(data) {
+    handleLoginSubmit({ username: data.username, password: data.password });
   }
 
   // User Login
   // data is the form data, afterSubmit is called when done to clean up in LoginModal
   // and onError is called if there is an error such as invalid username/password or server error
-  function handleLoginSubmit(data, afterSubmit, onError) {
-    auth
+  async function handleLoginSubmit(data, onError) {
+    await authAPI
       .loginUser(data)
-      .then((data) => {
+      .then(async (data) => {
         // User logged in successfully, set token and close modal
         localStorage.setItem(TOKEN_KEY, data.token);
-        auth.setUserToken(data.token);
+        authAPI.setUserToken(data.token);
         groupAPI.setUserToken(data.token);
         // set current user data and set isLoggedIn state
-        getCurrentUserData();
-        handleCloseModal();
-        afterSubmit();
+
+        await getCurrentUserData(handleCloseModal);
       })
       .catch(onError);
   }
@@ -114,36 +106,30 @@ function App() {
   function handleUserLogout() {
     setCurrentUser(emptyUserInfo);
     setIsLoggedIn(false);
-    auth.setUserToken("");
+    authAPI.setUserToken("");
     groupAPI.setUserToken("");
     localStorage.clear();
   }
 
   // Edit User Profile: update current user for Context
-  function handleEditProfileSubmit(data, afterSubmit, onError) {
-    auth
-      .editUserProfile(data)
-      .then((user) => {
-        // User profile updated
-        setCurrentUser((prev) => ({
-          ...prev,
-          name: user.name,
-          avatar: user.avatar,
-        }));
-        handleCloseModal();
-        afterSubmit();
-      })
-      .catch(onError);
+  function handleEditProfileSuccess(user) {
+    setCurrentUser((prev) => ({
+      ...prev,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+    }));
+    handleCloseModal();
   }
 
   // Get Current user data from API and validate before setting state and context variables
-  const getCurrentUserData = () => {
-    auth
+  async function getCurrentUserData(onFinish) {
+    await authAPI
       .getCurrentUser()
       .then((user) => {
         if (!user || !user._id) {
           localStorage.clear();
-          auth.setUserToken("");
+          authAPI.setUserToken("");
           groupAPI.setUserToken("");
           setCurrentUser(emptyUserInfo);
           setIsLoggedIn(false);
@@ -154,30 +140,41 @@ function App() {
       })
       .catch(handleFetchError)
       .finally(() => {
+        if (typeof onFinish === "function") onFinish();
         setIsCheckingAuth(false);
       });
-  };
+  }
 
   /* Global fetch error handler
   Since every page has at least one db call, this handles fetch connection errors cleanly to update
   state and show a clean error page instead of breaking the site design
   (If the initial requests succeed but a request further into the page fail, they may be handled individually by their components)
    */
-  const handleFetchError = (err) => {
+  function handleFetchError(err) {
     if (err.statusCode && err.statusCode === 404) {
       setHas404Error(true);
     } else {
       setHasFetchError(true);
     }
     console.error(err);
-  };
+  }
+
+  function getPrettierErrorMessage(err) {
+    const msg = err?.message || err.toString();
+    if (msg === "Failed to fetch") {
+      return "There was an error contacting the database. Please try again.";
+    } else if (err.validation) {
+      return err.validation.body.message;
+    }
+    return msg;
+  }
 
   /*
     handleReceiveOAuthCallback
     Handle the response from Google OAuth integration
     Sends code to back end for verification and then filters that down to the UI
   */
-  const handleReceiveOAuthCallback = (response, scope, onComplete) => {
+  function handleReceiveOAuthCallback(response, scope, onComplete) {
     const result = {
       isOk: false,
       message:
@@ -195,7 +192,7 @@ function App() {
             return;
           }
         }
-        auth
+        authAPI
           .verifyOAuthCallback(response.code)
           .then((data) => {
             result.isOk = true;
@@ -216,28 +213,28 @@ function App() {
       result.message = err.message;
       onComplete(result);
     }
-  };
+  }
 
   /*
     handleConfirmRevokeOAuth
     Tells the back-end to revoke Google Account access
   */
-  const handleConfirmRevokeOAuth = (onError) => {
-    auth
+  function handleConfirmRevokeOAuth(onError) {
+    authAPI
       .revokeOAuthAccess()
       .then((response) => {
         handleCloseModal();
         getCurrentUserData(); // update user data, which should filter down to update the display
       })
       .catch(onError);
-  };
+  }
 
   // runs on mount
   useEffect(() => {
     // Check local storage for user token
     const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
-      auth.setUserToken(token);
+      authAPI.setUserToken(token);
       groupAPI.setUserToken(token);
       getCurrentUserData();
     }
@@ -250,8 +247,9 @@ function App() {
         handleOpenSessionNotesModal,
         handleOpenDeleteModal,
         handleCloseModal,
-        authAPI: auth,
+        authAPI,
         groupAPI,
+        getPrettierErrorMessage,
       }}
     >
       <CurrentUserContext.Provider
@@ -268,13 +266,13 @@ function App() {
             ) : has404Error ? (
               <NotFound />
             ) : (
-              <Routes key={location.pathname}>
+              <Routes>
                 <Route
                   path="/profile"
                   element={
                     <ProtectedRoute>
                       <Profile
-                        onSubmit={handleEditProfileSubmit}
+                        onEditProfile={handleEditProfileSuccess}
                         onFetchError={handleFetchError}
                         onReceiveOAuthCallback={handleReceiveOAuthCallback}
                         onConfirmRevokeOAuth={handleConfirmRevokeOAuth}
@@ -302,7 +300,7 @@ function App() {
                   path="/signup"
                   element={
                     <ProtectedRoute anonymous>
-                      <Signup onSubmit={handleSignupSubmit} />
+                      <Signup onSignup={handleSignupComplete} />
                     </ProtectedRoute>
                   }
                 />
@@ -324,6 +322,9 @@ function App() {
                   path="/"
                   element={<Main onFetchError={handleFetchError} />}
                 />
+
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<TermsOfService />} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

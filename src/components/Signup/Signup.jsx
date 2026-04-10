@@ -6,15 +6,20 @@
 import "./Signup.css";
 import "../Form/Form.css";
 import validator from "validator";
-import { useFormWithValidation } from "../../hooks/useFormWithValidation";
-import { useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { useEffect, useState, useContext, useCallback } from "react";
 import { Link } from "react-router";
+import { BANNED_WORDS } from "../../utils/constants";
 import AvatarGenerator from "../AvatarGenerator/AvatarGenerator";
+import PageContext from "../../contexts/PageContext";
+
 // import PasswordStrengthChecker from "../PasswordStrengthChecker/PasswordStrengthChecker";
 
-function Signup({ onSubmit }) {
+function Signup({ onSignup }) {
+  /*const [passwordStrength, setPasswordStrength] = useState(0);*/
+  const { authAPI, getPrettierErrorMessage } = useContext(PageContext);
+
   const [signupError, setSignupError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const defaultValues = {
     name: "",
@@ -25,105 +30,145 @@ function Signup({ onSubmit }) {
     avatar: "",
   };
 
-  const validate = (values) => {
+  // Custom resolver for form validation including banned words check
+  const resolver = (values) => {
     const errors = {};
-    const regex = /[^a-zA-Z0-9]/gi;
 
+    // Username validation
     if (!values.username) {
-      errors.username = "Please enter a username.";
-    } else if (values.username.length < 3) {
-      errors.username = "Username must be at least 3 characters.";
+      errors.username = { message: "Please enter a username" };
     } else if (values.username.length > 20) {
-      errors.username = "Username can not be longer than 20 characters.";
-    } else if (regex.test(values.username)) {
-      errors.username = "Username can not contain spaces or special characters";
+      errors.username = {
+        message: "Username can not be longer than 20 characters",
+      };
+    } else if (values.username.length < 3) {
+      errors.username = { message: "Username must be at least 3 characters" };
+    } else if (!/^[a-zA-Z0-9_]+$/.test(values.username)) {
+      errors.username = {
+        message: "Username must only contain letters, numbers, and underscores",
+      };
+    } else {
+      // Check for banned words
+      const lowerUsername = values.username.toLowerCase();
+      if (BANNED_WORDS.some((word) => lowerUsername.includes(word))) {
+        errors.username = { message: "Your username contains a banned word" };
+      }
     }
 
-    if (!values.name) {
-      errors.name = "Please enter your name.";
-    } else if (values.name.length > 30) {
-      errors.name = "Name can not be longer than 30 characters.";
-    }
-
+    // Email validation
     if (!values.email) {
-      errors.email = "Email is required.";
+      errors.email = { message: "Please enter an email address" };
     } else if (!validator.isEmail(values.email)) {
-      errors.email = "Please enter a valid email address.";
+      errors.email = { message: "Please enter a valid email address" };
     }
 
+    // Password validation
     if (!values.password) {
-      errors.password = "Please enter a password.";
-    } /*else if (passwordStrength < 2) {
-      errors.password = "Please choose a stronger password.";
-    }*/
+      errors.password = { message: "Please enter a password" };
+    } else if (values.password.length < 8) {
+      errors.password = { message: "Password must be at least 8 characters" };
+    }
+
+    // Password confirm validation
     if (!values.password_confirm) {
-      errors.password_confirm = "Please confirm your password.";
-    } else if (values.password !== values.password_confirm) {
-      errors.password_confirm = "Passwords do not match.";
+      errors.password_confirm = { message: "Please confirm your password" };
+    } else if (values.password_confirm.length < 8) {
+      errors.password_confirm = {
+        message: "Password must be at least 8 characters",
+      };
+    } else if (values.password_confirm !== values.password) {
+      errors.password_confirm = { message: "Passwords do not match" };
     }
 
+    // Name validation
+    if (!values.name) {
+      errors.name = { message: "Please enter your name" };
+    } else if (values.name.length > 30) {
+      errors.name = { message: "Name can not be longer than 30 characters" };
+    } else {
+      // Check for banned words
+      const lowerName = values.name.toLowerCase();
+      if (BANNED_WORDS.some((word) => lowerName.includes(word))) {
+        errors.name = { message: "Your name contains a banned word" };
+      }
+    }
+
+    if (!values.invite) {
+      errors.invite = { message: "Please enter your invite code" };
+    }
+
+    // Avatar validation
     if (!values.avatar) {
-      errors.avatar = "Please choose an avatar.";
+      errors.avatar = { message: "Please choose an avatar" };
     }
 
-    return errors;
+    return { values, errors };
   };
 
-  /*const [passwordStrength, setPasswordStrength] = useState(0);*/
-
   const {
-    values,
-    handleChange,
-    errors,
-    resetForm,
+    register,
     handleSubmit,
-    setValues,
-    setErrors,
-    setIsValid,
-  } = useFormWithValidation(defaultValues, validate);
+    control,
+    subscribe,
+    formState: { errors, isSubmitting },
+    setValue,
+    setError,
+  } = useForm({
+    mode: "onBlur",
+    defaultValues,
+    resolver,
+  });
+  const password = useWatch({ control, name: "password" });
+  useEffect(() => {
+    // make sure to unsubscribe;
+    const callback = subscribe({
+      formState: {
+        values: true,
+      },
+      callback: ({ values }) => {
+        setSignupError("");
+      },
+    });
+
+    return () => callback();
+  }, [subscribe]);
+  // register("avatar", { required: true }); // Moved to resolver
+
+  // process form submit and then call onSignup which will tell App.jsx to sign in the new user
+  const handleFormSubmit = async (data) => {
+    await authAPI
+      .registerUser(data)
+      .then(() => {
+        // User registered successfully, handle login (be sure to use properties of "data" to get password)
+        onSignup(data);
+      })
+      .catch(handleSignupError);
+  };
 
   // Handle any errors caught by .catch() when submitting the form
   const handleSignupError = (err) => {
-    setIsSubmitting(false);
-    if (err.message === "Failed to fetch") {
-      setSignupError("Could not connect to database. Please try again.");
-    } else {
-      setSignupError(err.message);
-    }
+    setSignupError(getPrettierErrorMessage(err));
   };
 
-  const handleFormSubmit = (evt) => {
-    setIsSubmitting(true);
-    handleSubmit(evt, (trimmedValues) =>
-      onSubmit(
-        trimmedValues,
-        () => {
-          setIsSubmitting(false);
-          resetForm();
-        },
-        handleSignupError,
-      ),
-    );
-  };
+  // When the avatar chages, update the form field value
+  const handleAvatarChange = useCallback(
+    (avatar) => {
+      setValue("avatar", avatar);
+    },
+    [setValue],
+  );
 
-  const handleAvatarChange = (avatar) => {
-    setValues((prevValues) => {
-      const nextValues = { ...prevValues, avatar };
-      return nextValues;
-    });
-  };
-
-  const handleAvatarError = (err) => {
-    console.error(err);
-  };
+  const handleAvatarError = useCallback(
+    (err) => {
+      setError("avatar", { type: "custom", message: err.message });
+      console.error(err);
+    },
+    [setError],
+  );
 
   /*const handleUpdatePasswordStrength = (evaluation) => {
     setPasswordStrength(evaluation ? evaluation.score : 0);
   };*/
-
-  useEffect(() => {
-    resetForm();
-  }, []);
 
   return (
     <main className="signup__content">
@@ -132,7 +177,7 @@ function Signup({ onSubmit }) {
       <form
         className="form signup__form"
         name="signup-form-full"
-        onSubmit={handleFormSubmit}
+        onSubmit={handleSubmit(handleFormSubmit)}
         noValidate
       >
         <label
@@ -143,18 +188,17 @@ function Signup({ onSubmit }) {
           <input
             type="text"
             name="username"
-            value={values.username}
-            onChange={handleChange}
             className={`form__input ${errors.username ? "form__input_has-error" : ""}`}
             id="signup-username"
             placeholder="Username"
             maxLength={20}
+            {...register("username")}
           />
           <span
             className={`form__error ${errors.username ? "form__error_has-error" : ""}`}
             id="signup-username-error"
           >
-            {errors.username}
+            {errors.username?.message}
           </span>
         </label>
         <label
@@ -165,17 +209,16 @@ function Signup({ onSubmit }) {
           <input
             type="email"
             name="email"
-            value={values.email}
-            onChange={handleChange}
             className={`form__input ${errors.email ? "form__input_has-error" : ""}`}
             id="signup-email"
             placeholder="Email"
+            {...register("email")}
           />
           <span
             className={`form__error ${errors.email ? "form__error_has-error" : ""}`}
             id="signup-email-error"
           >
-            {errors.email}
+            {errors.email?.message}
           </span>
         </label>
         <label
@@ -186,11 +229,11 @@ function Signup({ onSubmit }) {
           <input
             type="password"
             name="password"
-            value={values.password}
-            onChange={handleChange}
             className={`form__input ${errors.password ? "form__input_has-error" : ""}`}
             id="signup-password"
             placeholder="Password"
+            minLength={8}
+            {...register("password")}
           />
           {/*<PasswordStrengthChecker
             password={values.password}
@@ -200,10 +243,9 @@ function Signup({ onSubmit }) {
             className={`form__error ${errors.password ? "form__error_has-error" : ""}`}
             id="signup-password-error"
           >
-            {errors.password}
+            {errors.password?.message}
           </span>
         </label>
-
         <label
           htmlFor="signup-password-confirm"
           className={`form__label ${errors.password_confirm ? "form__label_has-error" : ""}`}
@@ -212,20 +254,19 @@ function Signup({ onSubmit }) {
           <input
             type="password"
             name="password_confirm"
-            value={values.password_confirm}
-            onChange={handleChange}
             className={`form__input ${errors.password_confirm ? "form__input_has-error" : ""}`}
             id="signup-password-confirm"
             placeholder="Confirm password"
+            minLength={8}
+            {...register("password_confirm")}
           />
           <span
             className={`form__error ${errors.password_confirm ? "form__error_has-error" : ""}`}
             id="signup-password-confirm-error"
           >
-            {errors.password_confirm}
+            {errors.password_confirm?.message}
           </span>
         </label>
-
         <label
           htmlFor="signup-name"
           className={`form__label ${errors.name ? "form__label_has-error" : ""}`}
@@ -234,18 +275,17 @@ function Signup({ onSubmit }) {
           <input
             type="text"
             name="name"
-            value={values.name}
-            onChange={handleChange}
             className={`form__input ${errors.name ? "form__input_has-error" : ""}`}
             id="signup-name"
             placeholder="Name"
             maxLength={30}
+            {...register("name")}
           />
           <span
             className={`form__error ${errors.name ? "form__error_has-error" : ""}`}
             id="signup-name-error"
           >
-            {errors.name}
+            {errors.name?.message}
           </span>
         </label>
         <label
@@ -253,31 +293,70 @@ function Signup({ onSubmit }) {
         >
           Choose Your Avatar
         </label>
-
         <AvatarGenerator
           onChange={handleAvatarChange}
           onError={handleAvatarError}
         />
-
         <span
           className={`form__error ${errors.avatar ? "form__error_has-error" : ""}`}
           id="signup-avatar-error"
         >
-          {errors.avatar}
+          {errors.avatar?.message}
         </span>
-
         <span
           className={`form__error signup__error ${signupError ? "form__error_has-error" : ""}`}
         >
           {signupError}
         </span>
 
+        <div className="signup__beta-card">
+          <label
+            htmlFor="signup-invite"
+            className={`form__label ${errors.invite ? "form__label_has-error" : ""}`}
+          >
+            Invite Code
+            <p>
+              RollTogether is currently in beta testing and requires an invite
+              code to join
+            </p>
+            <input
+              type="text"
+              name="invite"
+              className={`form__input signup__code ${errors.invite ? "form__input_has-error" : ""}`}
+              id="signup-invite"
+              placeholder="Invite Code"
+              maxLength={6}
+              minLength={6}
+              {...register("invite", {
+                required: "Please enter your invite code",
+                maxLength: {
+                  value: 7,
+                  message: "Please enter your invite code",
+                },
+                minLength: {
+                  value: 7,
+                  message: "Please enter your invite code",
+                },
+                onChange: (evt) =>
+                  (evt.target.value = evt.target.value.trim().toUpperCase()),
+                shouldUnregister: true,
+              })}
+            />
+            <span
+              className={`form__error ${errors.invite ? "form__error_has-error" : ""}`}
+              id="signup-invite-error"
+            >
+              {errors.invite?.message}
+            </span>
+          </label>
+        </div>
+
         <button
           className={`form__submit-btn form__submit-btn-type_signup`}
           type="submit"
           disabled={isSubmitting}
         >
-          Sign Up
+          {isSubmitting ? "Submitting..." : "Sign Up"}
         </button>
         <Link to="/login" className="form__login-btn">
           or Log In

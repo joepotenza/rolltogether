@@ -113,6 +113,11 @@
   color: rgba(0, 84, 100);
 }
 
+.modal__pre-session-notes,
+.modal__post-session-notes {
+  font-family: "CabinetGrotesk";
+}
+
 @media screen and (max-width: 768px) {
   .session__name {
     max-width: 375px;

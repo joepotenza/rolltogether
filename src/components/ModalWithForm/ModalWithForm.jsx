@@ -10,6 +10,7 @@ function ModalWithForm({
   name,
   title,
   buttonText,
+  submittingButtonText = "Submitting...",
   isOpen,
   onClose,
   onSubmit,
@@ -17,6 +18,7 @@ function ModalWithForm({
   children,
   signupHandler,
   loginHandler,
+  isSubmitting,
 }) {
   return (
     <Modal name={name} isOpen={isOpen} onClose={onClose} onOpen={onOpen}>
@@ -33,8 +35,9 @@ function ModalWithForm({
         <button
           className={`modal__submit-btn modal__submit-btn-type_${name}`}
           type="submit"
+          disabled={isSubmitting}
         >
-          {buttonText}
+          {isSubmitting ? submittingButtonText : buttonText}
         </button>
         {name === "user-login" ? (
           <button

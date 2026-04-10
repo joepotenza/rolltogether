@@ -19,7 +19,11 @@ import ProfileForm from "../ProfileForm/ProfileForm";
 import UserAvatar from "../UserAvatar/UserAvatar";
 import SearchResults from "../SearchResults/SearchResults";
 
-function Profile({ onSubmit, onReceiveOAuthCallback, onConfirmRevokeOAuth }) {
+function Profile({
+  onEditProfile,
+  onReceiveOAuthCallback,
+  onConfirmRevokeOAuth,
+}) {
   const { username } = useParams();
   const navigate = useNavigate();
 
@@ -31,10 +35,6 @@ function Profile({ onSubmit, onReceiveOAuthCallback, onConfirmRevokeOAuth }) {
   const { onFetchError, ErrorUI } = useErrorHandler(
     typeof username !== "undefined",
   ); // Only process 404 errors when username is present (viewing a public profile page)
-
-  const handleEditProfile = (values, onSuccess, onError) => {
-    onSubmit(values, onSuccess, onError);
-  };
 
   /**
    * Loading Monitor for Profile Data
@@ -184,7 +184,7 @@ function Profile({ onSubmit, onReceiveOAuthCallback, onConfirmRevokeOAuth }) {
               {isOwnProfile && (
                 <ProfileForm
                   userInfo={currentUser}
-                  onSubmit={handleEditProfile}
+                  onEditProfile={onEditProfile}
                   onReceiveOAuthCallback={onReceiveOAuthCallback}
                   onConfirmRevokeOAuth={onConfirmRevokeOAuth}
                 />

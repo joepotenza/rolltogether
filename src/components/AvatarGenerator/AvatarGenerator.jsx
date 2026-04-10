@@ -4,7 +4,7 @@
 */
 
 import "./AvatarGenerator.css";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Avatar from "../../utils/Avatar";
 
 function AvatarGenerator({
@@ -16,20 +16,24 @@ function AvatarGenerator({
   showReset = false,
 }) {
   const [generatorAvailable, setGeneratorAvailable] = useState(true);
+  const [avatarState, setAvatarState] = useState({ index: -1, length: 0 });
   const handleError = (err) => {
     setGeneratorAvailable(false);
     if (onError) onError(err);
   };
-  const [avatar] = useState(
-    new Avatar({
+  const avatarRef = useRef(null);
+  if (avatarRef.current === null) {
+    avatarRef.current = new Avatar({
       type: "DiceBear",
       target: "avatar",
       defaultValue,
       options: {},
       onSuccess: onChange,
       onError: handleError,
-    }),
-  );
+      onStateChange: setAvatarState,
+    });
+  }
+  const avatar = avatarRef.current;
 
   const handlePrev = () => {
     if (generatorAvailable) avatar.prev();
@@ -70,7 +74,7 @@ function AvatarGenerator({
           <div className="generator__controls">
             <div className="generator__buttons">
               <button
-                className={`generator__prev-btn ${avatar.getCurrentPosition() > 0 ? "" : "generator__prev-btn_disabled"}`}
+                className={`generator__prev-btn ${avatarState.index > 0 ? "" : "generator__prev-btn_disabled"}`}
                 type="button"
                 onClick={handlePrev}
               />
@@ -82,7 +86,7 @@ function AvatarGenerator({
                 Refresh
               </button>
               <button
-                className={`generator__next-btn ${avatar.getHistoryLength() - 1 > avatar.getCurrentPosition() ? "" : "generator__next-btn_disabled"}`}
+                className={`generator__next-btn ${avatarState.length - 1 > avatarState.index ? "" : "generator__next-btn_disabled"}`}
                 type="button"
                 onClick={handleNext}
               />
@@ -115,4 +119,4 @@ function AvatarGenerator({
     </div>
   );
 }
-export default AvatarGenerator;
+export default React.memo(AvatarGenerator);

@@ -5,24 +5,30 @@
 
 import "./GroupSessionScheduler.css";
 import "../Form/Form.css";
-import { useFormWithValidation } from "../../hooks/useFormWithValidation";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useMemo } from "react";
+import {
+  useForm,
+  useWatch,
+  FormProvider,
+  useFieldArray,
+} from "react-hook-form";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import DOMPurify from "dompurify";
+import { hasBadWords } from "../../utils/constants";
 import PageContext from "../../contexts/PageContext";
 import GoogleCalendarScheduler from "../GoogleCalendarScheduler/GoogleCalendarScheduler";
 import UserAvatar from "../UserAvatar/UserAvatar";
 import WYSIWYG from "../WYSIWYG/WYSIWYG";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import DOMPurify from "dompurify";
 import checkIcon from "../../images/check_icon.svg";
 
 function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
-  const { groupAPI } = useContext(PageContext);
+  console.log("render GroupSessionScheduler");
+  const { groupAPI, getPrettierErrorMessage } = useContext(PageContext);
   const [submitError, setSubmitError] = useState("");
   const [datePickerMode, setDatePickerMode] = useState("manual");
   const [timeChosenFromGoogleScheduler, setTimeChosenFromGoogleScheduler] =
     useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get the user's timezone short (like PST or EDT)
   const tz = new Intl.DateTimeFormat("en-US", {
@@ -31,132 +37,197 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
     .formatToParts(new Date())
     .find((p) => p.type === "timeZoneName").value;
 
-  let defaultValues;
-  if (sessionInfo._id) {
-    defaultValues = {
-      group: groupInfo._id,
-      _id: sessionInfo._id,
-      name: sessionInfo.name,
-      date: sessionInfo.date,
-      preSessionNotes: sessionInfo.preSessionNotes,
-      postSessionNotes: sessionInfo.postSessionNotes,
-      areNotesVisibleToMembers: sessionInfo.areNotesVisibleToMembers,
-      attendees: sessionInfo.attendees,
-    };
-  } else {
-    defaultValues = {
+  const resolver = (values) => {
+    const errors = {};
+
+    // Name validation
+    if (!values.name) {
+      errors.name = { message: "Please enter a session name" };
+    } else if (values.name.length > 300) {
+      errors.name = {
+        message: "Session name can not be longer than 300 characters",
+      };
+    } else {
+      // Check for banned words
+      const lowerName = values.name.toLowerCase();
+
+      if (hasBadWords(lowerName)) {
+        errors.name = { message: "Your session name contains a banned word" };
+      }
+    }
+
+    // Attendee validation
+    if (!values.attendees || values.attendees.length === 0) {
+      errors.attendees = {
+        root: {
+          message: "Please select at least one attendee for the session",
+        },
+      };
+    }
+
+    // Date validation
+    if (!values.date || isNaN(Date.parse(values.date))) {
+      errors.date = {
+        message: "Please select a date for the session",
+      };
+    }
+
+    // Pre-session notes validation (optional, but check banned words if present)
+    if (values.preSessionNotes) {
+      const onlyText = DOMPurify.sanitize(values.preSessionNotes, {
+        ALLOWED_TAGS: [],
+      })
+        .replaceAll("\u00A0", " ")
+        .replaceAll("&nbsp;", " ")
+        .replace(/[\r\n]+/g, " ")
+        .trim();
+      if (onlyText.length > 0) {
+        // Check for banned words
+        const lowerPreNotes = onlyText.toLowerCase();
+        if (hasBadWords(lowerPreNotes)) {
+          errors.preSessionNotes = {
+            message: "Your pre-session notes contain a banned word",
+          };
+        }
+      }
+    }
+
+    // Post-session notes validation (optional, but check banned words if present)
+    if (values.postSessionNotes) {
+      const onlyText = DOMPurify.sanitize(values.postSessionNotes, {
+        ALLOWED_TAGS: [],
+      })
+        .replaceAll("\u00A0", " ")
+        .replaceAll("&nbsp;", " ")
+        .replace(/[\r\n]+/g, " ")
+        .trim();
+      if (onlyText.length > 0) {
+        // Check for banned words
+        const lowerPostNotes = onlyText.toLowerCase();
+        if (hasBadWords(lowerPostNotes)) {
+          errors.postSessionNotes = {
+            message: "Your post-session notes contain a banned word",
+          };
+        }
+      }
+    }
+
+    return { values, errors };
+  };
+
+  const defaultValues = useMemo(() => {
+    if (sessionInfo._id) {
+      return {
+        group: groupInfo._id,
+        _id: sessionInfo._id,
+        name: sessionInfo.name,
+        date: sessionInfo.date,
+        preSessionNotes: sessionInfo.preSessionNotes,
+        postSessionNotes: sessionInfo.postSessionNotes,
+        areNotesVisibleToMembers: sessionInfo.areNotesVisibleToMembers,
+        attendees: sessionInfo.attendees,
+      };
+    }
+
+    return {
       group: groupInfo._id,
       _id: "",
       name: "",
       date: "",
       preSessionNotes: "",
       postSessionNotes: "",
-      areNotesVisibleToMembers: false,
+      areNotesVisibleToMembers: "none",
       attendees: [],
     };
-  }
+  }, [
+    groupInfo._id,
+    sessionInfo._id,
+    sessionInfo.name,
+    sessionInfo.date,
+    sessionInfo.preSessionNotes,
+    sessionInfo.postSessionNotes,
+    sessionInfo.areNotesVisibleToMembers,
+    sessionInfo.attendees,
+  ]);
+
+  const methods = useForm({
+    mode: "onBlur",
+    defaultValues,
+    resolver,
+  });
+  const {
+    register,
+    reset,
+    handleSubmit,
+    subscribe,
+    control,
+    formState: { errors, isSubmitting },
+    setValue,
+    getValues,
+  } = methods;
+
+  const { replace } = useFieldArray({
+    control,
+    name: "attendees",
+  });
+
+  const attendees = useWatch({ control, name: "attendees" });
+  const selectedDate = useWatch({ control, name: "date" });
 
   // Select or deselect an attendee for this session
   const handleSelectAttendee = (evt, userId) => {
     evt.preventDefault();
     // search the attendee list for the user
-    let isSelected = false;
-    let attendee;
-    let attendees = [...values.attendees];
-    for (let i = 0; i < values.attendees.length; i++) {
-      attendee = values.attendees[i];
-      if (attendee._id === userId) {
-        // user selected already, delete from the list
-        isSelected = true;
-        attendees.splice(i, 1);
-        break;
-      }
-    }
+
+    let theAttendees = attendees ? [...attendees] : [];
+
+    const index = theAttendees.findIndex((attendee) => attendee._id === userId);
+    const isSelected = index > -1;
     const btn = document.getElementById(`attendee-${userId}`);
     if (isSelected) {
+      // remove from the attendees array
+      theAttendees.splice(index, 1);
       // remove the selected class
       btn.classList.remove("attendee__selected");
     } else {
       // add selected class and add attendee to array
       btn.classList.add("attendee__selected");
-      attendee = groupInfo.members.find((member) => member._id === userId);
-      attendees.push(attendee);
+      const attendee = groupInfo.members.find(
+        (member) => member._id === userId,
+      );
+      theAttendees.push(attendee);
     }
-    const newValues = { ...values, attendees };
-    setValues(newValues);
+
+    replace(theAttendees);
   };
 
   // checks if a member is one of the selected attendees
   const isMemberAttendee = (id) => {
-    return values.attendees.find((attendee) => attendee._id === id);
+    return attendees && attendees.some((attendee) => attendee._id === id);
   };
 
-  /** Form Validation **/
-  const validate = (values) => {
-    const errors = {};
-
-    setSubmitError("");
-
-    console.log(values.date);
-
-    if (!values.name) {
-      errors.name = "Please enter a group name";
-    } else if (values.name.length < 3) {
-      errors.name = "Group name must be at least 3 characters";
-    } else if (values.name.length > 300) {
-      errors.name = "Group name must be less than 300 characters";
-    }
-
-    if (!values.date) {
-      errors.date = "Please select a date for the session";
-    } else if (isNaN(Date.parse(values.date))) {
-      errors.date = "Please select a date for the session";
-    }
-
-    if (Object.values(errors).length > 0) {
-      // This makes sure the user sees an error by the submit button
-      // since the form is so long they may not see the fields above
-      setSubmitError("Please check all input and try again");
-    }
-
-    return errors;
-  };
-
-  const {
-    values,
-    setValues,
-    handleChange,
-    handleWYSIWYGChange,
-    handleDatePickerChange,
-    errors,
-    resetForm,
-    handleSubmit,
-  } = useFormWithValidation(defaultValues, validate);
-
+  // form submit returned error
   const handleSubmitError = (err) => {
-    setIsSubmitting(false);
-    if (err.message === "Failed to fetch") {
-      setSubmitError("Could not connect to database. Please try again.");
-    } else {
-      setSubmitError(err.message);
-    }
+    setSubmitError(getPrettierErrorMessage(err));
+  };
+
+  // handleFormError will trigger if any validation errors occur
+  const handleFormError = (errors) => {
+    setSubmitError("Please check your input and try again");
   };
 
   //submit form: sanitize the data and submit to API via parent component
-  const handleFormSubmit = (evt) => {
-    setIsSubmitting(true);
-    handleSubmit(evt, (trimmedValues) => {
-      //fix attendees array to just be IDs
-      const data = { ...trimmedValues };
-      for (let i = 0; i < data.attendees.length; i++) {
-        data.attendees[i] = data.attendees[i]._id;
-      }
-      // Sanitize HTML
-      data.preSessionNotes = DOMPurify.sanitize(data.preSessionNotes);
-      data.postSessionNotes = DOMPurify.sanitize(data.postSessionNotes);
+  const handleFormSubmit = async (values) => {
+    //fix attendees array to just be IDs
+    const data = { ...values };
+    for (let i = 0; i < data.attendees.length; i++) {
+      data.attendees[i] = data.attendees[i]._id;
+    }
+    // Sanitize HTML
+    data.preSessionNotes = DOMPurify.sanitize(data.preSessionNotes);
+    data.postSessionNotes = DOMPurify.sanitize(data.postSessionNotes);
 
-      onSubmit(trimmedValues, handleSubmitError);
-    });
+    await onSubmit(data, handleSubmitError);
   };
 
   // Do Google Calendar schedule matching
@@ -174,18 +245,8 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
     onComplete,
     onError,
   ) => {
-    console.log(
-      "Session Scheduler: handleStartMatching",
-      start,
-      end,
-      userIds,
-      minUsers,
-      minDuration,
-      prefStartHour,
-      prefEndHour,
-    );
     //clear date picker and make sure it isn't shown
-    handleDatePickerChange("date", "", false);
+    setValue("date", "");
     setTimeChosenFromGoogleScheduler(false);
     groupAPI
       .freebusy({
@@ -208,7 +269,7 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
 
   // When a date is picked from the google calendar scheduler, set the date and flag it so the session date form field gets shown
   const handleSelectGoogleCalendarTime = (chosenDate) => {
-    handleDatePickerChange("date", chosenDate);
+    setValue("date", chosenDate);
     setTimeChosenFromGoogleScheduler(chosenDate && chosenDate !== "");
   };
 
@@ -216,223 +277,253 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
   // in the background and silently submitted by accident
   const handleSwitchDatePickerMode = (mode) => {
     if (mode === "google") {
-      console.log("clearing date on switch to google");
-      const nextValues = { ...values, date: "" };
-      setValues(nextValues);
+      setValue("date", "");
     }
     setDatePickerMode(mode);
   };
 
   useEffect(() => {
-    resetForm();
-  }, []);
+    console.log("useeffect reset");
+    reset(defaultValues);
+    setTimeChosenFromGoogleScheduler(
+      defaultValues.date && defaultValues.date !== "",
+    );
+  }, [defaultValues, reset]);
+
+  useEffect(() => {
+    console.log("useeffect subscribe");
+    // make sure to unsubscribe;
+    const callback = subscribe({
+      formState: {
+        values: true,
+      },
+      callback: ({ values }) => {
+        setSubmitError("");
+      },
+    });
+
+    return () => callback();
+  }, [subscribe]);
 
   return (
-    <div className="session__scheduler">
-      <h2 className="scheduler__title">
-        {sessionInfo.name ? sessionInfo.name : "Schedule a Session"}
-      </h2>
-      <form
-        name="scheduler-form"
-        className="scheduler__form"
-        onSubmit={handleFormSubmit}
-      >
-        <label
-          htmlFor="scheduler-name"
-          className={`form__label ${errors.name ? "form__label_has-error" : ""}`}
-        >
-          Session Name
-          <input
-            type="text"
-            name="name"
-            value={values.name}
-            onChange={handleChange}
-            className={`form__input ${errors.name ? "form__input_has-error" : ""}`}
-            id="scheduler-name"
-            placeholder="Name"
-            maxLength={300}
-          />
-          <span
-            className={`form__error ${errors.name ? "form__error_has-error" : ""}`}
-            id="scheduler-name-error"
-          >
-            {errors.name}
-          </span>
-        </label>
-
-        <label
-          htmlFor="scheduler-attendees"
-          className={`form__label ${errors.attendees ? "form__label_has-error" : ""}`}
-        >
-          Who will be attending?
-          <span
-            className={`form__error ${errors.attendees ? "form__error_has-error" : ""}`}
-            id="scheduler-attendees-error"
-          >
-            {errors.attendees}
-          </span>
-        </label>
-
-        <p className="scheduler__attendee-text">
-          Select attendees for the session:
-        </p>
-        <div className="scheduler__attendees">
-          {groupInfo.members.map((member) => (
-            <div
-              id={`attendee-${member._id}`}
-              className={`attendee ${isMemberAttendee(member._id) ? "attendee_selected" : ""}`}
-              key={member._id}
+    <FormProvider {...methods}>
+      <div className="session__scheduler">
+        {groupInfo.members.length === 0 ? (
+          <h2 className="scheduler__title">
+            Can not schedule a session without members
+          </h2>
+        ) : (
+          <>
+            <h2 className="scheduler__title">
+              {sessionInfo.name ? sessionInfo.name : "Schedule a Session"}
+            </h2>
+            <form
+              name="scheduler-form"
+              className="scheduler__form"
+              onSubmit={handleSubmit(handleFormSubmit, handleFormError)}
             >
-              <img src={checkIcon} className="attendee__checkmark" />
-              <button
-                type="button"
-                className="attendee__avatar-btn"
-                id={`attendee-avatar-btn-${member._id}`}
-                onClick={(evt) => handleSelectAttendee(evt, member._id)}
+              <label
+                htmlFor="scheduler-name"
+                className={`form__label ${errors.name ? "form__label_has-error" : ""}`}
               >
-                <UserAvatar avatarClass="attendee" user={member} />
-              </button>
-              <div className="attendee__name">{member.username}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="scheduler__date-card">
-          <div className="date-card__mode">
-            <button
-              className={`date-card__btn date-card__btn_manual ${datePickerMode === "manual" ? "date-card__btn_selected" : ""}`}
-              type="button"
-              onClick={() => handleSwitchDatePickerMode("manual")}
-            >
-              Set time manually
-            </button>
-            <button
-              className={`date-card__btn date-card__btn_google ${datePickerMode === "google" ? "date-card__btn_selected" : ""}`}
-              type="button"
-              onClick={() => handleSwitchDatePickerMode("google")}
-            >
-              Find a time (Google)
-            </button>
-          </div>
-
-          {datePickerMode === "google" && (
-            <GoogleCalendarScheduler
-              attendees={values.attendees}
-              onStartMatching={handleStartMatching}
-              error={errors.google}
-              onSelectTime={handleSelectGoogleCalendarTime}
-              tz={tz}
-            />
-          )}
-
-          {(datePickerMode === "manual" || timeChosenFromGoogleScheduler) && (
-            <label
-              htmlFor="scheduler-date"
-              className={`form__label_type_session-date ${errors.date ? "form__label_has-error" : ""}`}
-            >
-              Session Date (Timezone: {tz})
-              <div className="scheduler__date">
-                <DatePicker
-                  selected={values.date}
-                  onChange={(date) => handleDatePickerChange("date", date)}
-                  timeInputLabel="Time:"
-                  dateFormat="MM/dd/yyyy h:mm aa"
-                  showTimeInput
-                  showIcon
-                  className="form__datepicker"
+                Session Name
+                <input
+                  type="text"
+                  name="name"
+                  className={`form__input ${errors.name ? "form__input_has-error" : ""}`}
+                  id="scheduler-name"
+                  placeholder="Name"
+                  maxLength={300}
+                  {...register("name")}
                 />
+                <span
+                  className={`form__error ${errors.name ? "form__error_has-error" : ""}`}
+                  id="scheduler-name-error"
+                >
+                  {errors.name?.message}
+                </span>
+              </label>
+
+              <label
+                className={`form__label ${errors.attendees ? "form__label_has-error" : ""}`}
+              >
+                Who will be attending?
+                <span
+                  className={`form__error ${errors.attendees ? "form__error_has-error" : ""}`}
+                  id="scheduler-attendees-error"
+                >
+                  {errors.attendees?.root?.message}
+                </span>
+              </label>
+
+              <p className="scheduler__attendee-text">
+                Select attendees for the session:
+              </p>
+              <div className="scheduler__attendees">
+                {groupInfo.members.map((member) => (
+                  <div
+                    id={`attendee-${member._id}`}
+                    className={`attendee ${isMemberAttendee(member._id) ? "attendee_selected" : ""}`}
+                    key={member._id}
+                  >
+                    <img src={checkIcon} className="attendee__checkmark" />
+                    <button
+                      type="button"
+                      className="attendee__avatar-btn"
+                      id={`attendee-avatar-btn-${member._id}`}
+                      onClick={(evt) => handleSelectAttendee(evt, member._id)}
+                    >
+                      <UserAvatar avatarClass="attendee" user={member} />
+                    </button>
+                    <div className="attendee__name">{member.username}</div>
+                  </div>
+                ))}
               </div>
-            </label>
-          )}
-          <span
-            className={`form__error form__error_bold ${errors.date ? "form__error_has-error" : ""}`}
-            id="scheduler-date-error"
-          >
-            {errors.date}
-          </span>
-        </div>
 
-        <div className="scheduler__preSessionNotes">
-          <label
-            htmlFor="scheduler-preSessionNotes"
-            className={`form__label ${errors.preSessionNotes ? "form__label_has-error" : ""}`}
-          >
-            Pre-Session Notes
-          </label>
-          <WYSIWYG
-            initialContent={values.preSessionNotes}
-            onChange={(content) =>
-              handleWYSIWYGChange("preSessionNotes", content)
-            }
-          />
-          <span
-            className={`form__error form__error_bold ${errors.preSessionNotes ? "form__error_has-error" : ""}`}
-            id="groupform-preSessionNotes-error"
-          >
-            {errors.preSessionNotes}
-          </span>
-        </div>
+              <div className="scheduler__date-card">
+                <div className="date-card__mode">
+                  <button
+                    className={`date-card__btn date-card__btn_manual ${datePickerMode === "manual" ? "date-card__btn_selected" : ""}`}
+                    type="button"
+                    onClick={() => handleSwitchDatePickerMode("manual")}
+                  >
+                    Set time manually
+                  </button>
+                  <button
+                    className={`date-card__btn date-card__btn_google ${datePickerMode === "google" ? "date-card__btn_selected" : ""}`}
+                    type="button"
+                    onClick={() => handleSwitchDatePickerMode("google")}
+                  >
+                    Find a time (Google)
+                  </button>
+                </div>
 
-        {sessionInfo._id && (
-          <div className="scheduler__postSessionNotes">
-            <label
-              htmlFor="scheduler-postSessionNotes"
-              className={`form__label ${errors.postSessionNotes ? "form__label_has-error" : ""}`}
-            >
-              Post-Session Notes
-            </label>
-            <WYSIWYG
-              initialContent={values.postSessionNotes}
-              onChange={(content) =>
-                handleWYSIWYGChange("postSessionNotes", content)
-              }
-            />
-            <span
-              className={`form__error form__error_bold ${errors.postSessionNotes ? "form__error_has-error" : ""}`}
-              id="groupform-postSessionNotes-error"
-            >
-              {errors.postSessionNotes}
-            </span>
-          </div>
+                {datePickerMode === "google" && (
+                  <GoogleCalendarScheduler
+                    attendees={attendees}
+                    onStartMatching={handleStartMatching}
+                    error={errors.google}
+                    onSelectTime={handleSelectGoogleCalendarTime}
+                    tz={tz}
+                  />
+                )}
+
+                {(datePickerMode === "manual" ||
+                  timeChosenFromGoogleScheduler) && (
+                  <label
+                    className={`form__label_type_session-date ${errors.date ? "form__label_has-error" : ""}`}
+                  >
+                    Session Date (Timezone: {tz})
+                    <div className="scheduler__date">
+                      <DatePicker
+                        name="date"
+                        onChange={(value) => {
+                          setValue("date", value);
+                        }}
+                        selected={selectedDate}
+                        timeInputLabel="Time:"
+                        dateFormat="MM/dd/yyyy h:mm aa"
+                        showTimeInput
+                        showIcon
+                        closeOnScroll
+                        className="form__datepicker"
+                      />
+                    </div>
+                  </label>
+                )}
+                <span
+                  className={`form__error form__error_bold ${errors.date ? "form__error_has-error" : ""}`}
+                  id="scheduler-date-error"
+                >
+                  {errors.date?.message}
+                </span>
+              </div>
+
+              <div className="scheduler__preSessionNotes">
+                <label
+                  className={`form__label ${errors.preSessionNotes ? "form__label_has-error" : ""}`}
+                >
+                  Pre-Session Notes
+                </label>
+                <WYSIWYG
+                  initialContent={defaultValues.preSessionNotes}
+                  onChange={(content) => setValue("preSessionNotes", content)}
+                />
+                <span
+                  className={`form__error form__error_bold ${errors.preSessionNotes ? "form__error_has-error" : ""}`}
+                  id="groupform-preSessionNotes-error"
+                >
+                  {errors.preSessionNotes?.message}
+                </span>
+              </div>
+
+              {sessionInfo._id && (
+                <div className="scheduler__postSessionNotes">
+                  <label
+                    className={`form__label ${errors.postSessionNotes ? "form__label_has-error" : ""}`}
+                  >
+                    Post-Session Notes
+                  </label>
+                  <WYSIWYG
+                    initialContent={defaultValues.postSessionNotes}
+                    onChange={(content) =>
+                      setValue("postSessionNotes", content)
+                    }
+                  />
+                  <span
+                    className={`form__error form__error_bold ${errors.postSessionNotes ? "form__error_has-error" : ""}`}
+                    id="groupform-postSessionNotes-error"
+                  >
+                    {errors.postSessionNotes?.message}
+                  </span>
+                </div>
+              )}
+              <label
+                htmlFor="scheduler-areNotesVisibleToMembers"
+                className={`form__label ${errors.areNotesVisibleToMembers ? "form__label_has-error" : ""}`}
+              >
+                Should session notes be visible to group members?
+                <select
+                  id="scheduler-areNotesVisibleToMembers"
+                  className="form__select"
+                  name="areNotesVisibleToMembers"
+                  {...register("areNotesVisibleToMembers")}
+                >
+                  <option value="none">Members can't see session notes</option>
+                  <option value="pre">Only pre-session notes</option>
+                  <option value="post">Only post-session notes</option>
+                  <option value="all">Members can see all notes</option>
+                </select>
+              </label>
+
+              <span
+                className={`form__error form__error_bold ${submitError ? "form__error_has-error" : ""}`}
+              >
+                {submitError}
+              </span>
+              <button
+                className={`form__submit-btn form__submit-btn-type_scheduler`}
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting
+                  ? "Submitting..."
+                  : sessionInfo.name
+                    ? "Edit Session"
+                    : "Schedule Session"}
+              </button>
+              <button
+                className="scheduler__cancel-btn"
+                onClick={onGoBack}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+            </form>
+          </>
         )}
-        <label
-          htmlFor="scheduler-areNotesVisibleToMembers"
-          className={`form__label ${errors.areNotesVisibleToMembers ? "form__label_has-error" : ""}`}
-        >
-          Should session notes be visible to group members?
-          <select
-            id="scheduler-areNotesVisibleToMembers"
-            className="form__select"
-            name="areNotesVisibleToMembers"
-            defaultValue={values.areNotesVisibleToMembers}
-            onChange={handleChange}
-          >
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-          </select>
-        </label>
-
-        <span
-          className={`form__error form__error_bold ${submitError ? "form__error_has-error" : ""}`}
-        >
-          {submitError}
-        </span>
-        <button
-          className={`form__submit-btn form__submit-btn-type_scheduler`}
-          type="submit"
-          disabled={isSubmitting}
-        >
-          {sessionInfo.name ? "Edit Session" : "Schedule Session"}
-        </button>
-        <button
-          className="scheduler_cancel-btn"
-          onClick={onGoBack}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </button>
-      </form>
-    </div>
+      </div>
+    </FormProvider>
   );
 }
 export default GroupSessionScheduler;

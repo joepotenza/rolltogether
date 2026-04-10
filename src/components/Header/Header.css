@@ -99,6 +99,9 @@
   background-repeat: no-repeat;
   background-image: url(../../images/vertical_dots_icon_grey.svg);
   margin: 0;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
 }
 .dropdown__link + .dropdown__link {
   border-top: 1px solid #eee;
@@ -279,6 +282,9 @@
     z-index: 20;
     padding: 40px 10px 10px 10px;
   }
+  .header__menu_loggedIn_false .header__menu {
+    flex-direction: column;
+  }
   .header__menu-btn {
     margin-left: auto;
     display: block;
@@ -330,5 +336,20 @@
   .header__user-signup,
   .header__user-login {
     background-color: #fff;
+  }
+
+  .header__menu_loggedIn_false .header__user-container {
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    margin: 24px 0 0 0;
+    gap: 24px;
+  }
+  .header__menu_loggedIn_false .header__link {
+    border-color: #fff;
+    font-size: 24px;
+    line-height: 30px;
+    background-size: 24px 24px;
+    padding: 0 8px 0 40px;
   }
 }

@@ -13,20 +13,6 @@
   font-style: normal;
 }
 @font-face {
-  src: url("./fonts/chillax/Chillax-Regular.otf") format("opentype");
-  font-family: "Chillax";
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  src: url("./fonts/chillax/Chillax-SemiBold.otf") format("opentype");
-  font-family: "ChillaxSemiBold";
-}
-@font-face {
-  src: url("./fonts/chillax/Chillax-Bold.otf") format("opentype");
-  font-family: "ChillaxBold";
-}
-@font-face {
   src: url("./fonts/chillax/Chillax-Variable.ttf") format("truetype");
   font-family: "ChillaxVariable";
 }

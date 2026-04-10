@@ -4,7 +4,7 @@
 
     DISABLED FOR NOW
 */
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import zxcvbn from "zxcvbn";
 
 const PasswordStrengthChecker = ({ password, onUpdate }) => {

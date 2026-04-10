@@ -5,9 +5,11 @@
   align-items: flex-start;
   gap: 32px;
 }
+/*
 .profile__form-fields {
   max-width: 240px;
 }
+  */
 .profile__google {
   flex-grow: 2;
 }
@@ -16,6 +18,10 @@
   font-size: 32px;
   line-height: 28px;
   margin: 0 0 24px;
+}
+.profile__error {
+  margin-top: 24px;
+  margin-bottom: 0;
 }
 .profile__google-status {
   margin: 24px 0;
@@ -33,7 +39,7 @@
 }
 .form__submit-btn-type_revoke {
   width: 280px;
-  background-color: #de4545;
+  background-color: #e86b6b; /* #de4545; */
 }
 
 .profile__success {

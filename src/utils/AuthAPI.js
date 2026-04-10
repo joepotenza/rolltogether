@@ -24,11 +24,11 @@ export default class AuthAPI extends APIBase {
   }
 
   // Edit user profile
-  editUserProfile({ name, avatar }) {
+  editUserProfile({ name, email, avatar }) {
     return this._makeAPICall({
       endpoint: "/users/me",
       method: "PATCH",
-      body: JSON.stringify({ name, avatar }),
+      body: JSON.stringify({ name, email, avatar }),
       requireToken: true,
     });
   }

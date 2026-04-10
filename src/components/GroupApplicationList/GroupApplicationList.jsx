@@ -5,19 +5,20 @@
 
 import "../Form/Form.css";
 import "./GroupApplicationList.css";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useContext } from "react";
 import { Link } from "react-router";
-import { prettyDateFormat } from "../../utils/constants";
+import { BANNED_WORDS, prettyDateFormat } from "../../utils/constants";
+import PageContext from "../../contexts/PageContext";
 import UserAvatar from "../UserAvatar/UserAvatar";
 import PreLoader from "../PreLoader/PreLoader";
 
 function GroupApplicationList({
-  api,
   groupInfo,
   applicationList,
   isApplicationListLoading,
   onApprove,
 }) {
+  const { groupAPI, getPrettierErrorMessage } = useContext(PageContext);
   const [isResponding, setIsResponding] = useState(false);
 
   /*
@@ -72,8 +73,18 @@ function GroupApplicationList({
   // Update app status
   const handleUpdateApplication = (appId, status) => {
     const response = responseValues[appId] || "";
+    // stop if there's a banned word
+    const lowerResponse = response.toLowerCase();
+    if (BANNED_WORDS.some((word) => lowerResponse.includes(word))) {
+      const newErrors = {
+        ...responseErrors,
+        [appId]: "Your response contains a banned word",
+      };
+      setResponseErrors(newErrors);
+      return;
+    }
     setIsResponding(true);
-    api
+    groupAPI
       .updateApplicationStatus({
         groupId: groupInfo._id,
         appId,
@@ -104,7 +115,10 @@ function GroupApplicationList({
         setIsResponding(false);
       })
       .catch((err) => {
-        const newErrors = { ...responseErrors, [appId]: err.message };
+        const newErrors = {
+          ...responseErrors,
+          [appId]: getPrettierErrorMessage(err),
+        };
         setResponseErrors(newErrors);
         setIsResponding(false);
       });

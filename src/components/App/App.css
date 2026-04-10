@@ -116,6 +116,37 @@ a:visited {
   font-family: "CabinetGroteskBold";
 }
 
+.privacy,
+.terms-of-service {
+  max-width: 1000px;
+  margin: 24px auto 0;
+}
+.privacy h1,
+.privacy h2,
+.privacy h3,
+.privacy strong,
+.terms-of-service h1,
+.terms-of-service h2,
+.terms-of-service h3,
+.terms-of-service strong {
+  font-family: "CabinetGroteskBold";
+}
+.privacy h1,
+.terms-of-service h1 {
+  font-size: 32px;
+  margin: 0 0 24px 0;
+}
+.privacy h2,
+.terms-of-service h2 {
+  font-size: 24px;
+  margin: 12px 0;
+}
+.privacy h3,
+.terms-of-service h3 {
+  font-size: 18px;
+  margin: 12px 0;
+}
+
 @media screen and (max-width: 630px) {
   .page__content {
     padding: 0 16px;

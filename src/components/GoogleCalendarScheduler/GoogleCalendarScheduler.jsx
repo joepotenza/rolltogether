@@ -4,36 +4,30 @@
 */
 
 import "./GoogleCalendarScheduler.css";
-
-import { useMemo, useState, useContext } from "react";
-import CurrentUserContext from "../../contexts/CurrentUserContext";
+import { useEffect, useMemo, useState, useContext } from "react";
+import { useWatch, useFormContext } from "react-hook-form";
 import DatePicker from "react-datepicker";
-import { formatRelative, parseISO } from "date-fns";
+import { friendlyDate } from "../../utils/constants";
+import CurrentUserContext from "../../contexts/CurrentUserContext";
+import PageContext from "../../contexts/PageContext";
 
-const friendlyDate = (isoString) => {
-  const date = parseISO(isoString);
-  const relativeDate = formatRelative(date, new Date());
-  // result: "today at 7:00 PM" or "tomorrow at 11:00 PM"
-  return relativeDate;
-};
-
-function GoogleCalendarScheduler({
-  attendees,
-  onStartMatching,
-  onSelectTime,
-  tz,
-}) {
+function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
+  console.log("render GoogleCalendarScheduler");
   const { currentUser } = useContext(CurrentUserContext);
+  const { getPrettierErrorMessage } = useContext(PageContext);
   const [matchingError, setMatchingError] = useState("");
   const [start, setStart] = useState(null);
   const [end, setEnd] = useState(null);
-  const [minUsers, setMinUsers] = useState(0);
+  const [minUsers, setMinUsers] = useState(1);
   const [minDuration, setMinDuration] = useState(30);
   const [prefStartHour, setPrefStartHour] = useState(-1);
   const [prefEndHour, setPrefEndHour] = useState(-1);
   const [isMatchingCalendars, setIsMatchingCalendars] = useState(false);
   const [disconnectedUsers, setDisconnectedUsers] = useState([]);
   const [matchingResults, setMatchingResults] = useState([]);
+  const { control } = useFormContext();
+
+  const attendees = useWatch({ control, name: "attendees" });
 
   const onChangeDateRange = (dates) => {
     const [s, e] = dates;
@@ -53,18 +47,15 @@ function GoogleCalendarScheduler({
     });
   }, [attendees]);
 
-  // There must be at least 2 attendees with Google connected to be able to search
-  const enoughAttendeesAvailable = useMemo(() => {
-    return (
-      attendeesWithGoogleConnected.length > 1 ||
-      (attendeesWithGoogleConnected.length === 1 && isOwnerConnected)
-    );
-  }, [attendeesWithGoogleConnected, currentUser]);
-
   // # of attendees + the GM if they are also linked
   const totalAttendees = useMemo(() => {
     return attendeesWithGoogleConnected.length + (isOwnerConnected ? 1 : 0);
   }, [attendeesWithGoogleConnected, currentUser]);
+
+  // There must be at least 2 attendees with Google connected to be able to search
+  const enoughAttendeesAvailable = useMemo(() => {
+    return totalAttendees > 1;
+  }, [totalAttendees]);
 
   // show loading spinner, then collect the data and send it to the API.
   const handleStartMatching = (evt) => {
@@ -72,6 +63,7 @@ function GoogleCalendarScheduler({
       evt.preventDefault();
       setIsMatchingCalendars(true);
       setDisconnectedUsers([]);
+      setMatchingError("");
       const userIds = attendeesWithGoogleConnected.map(
         (attendee) => attendee._id,
       );
@@ -84,21 +76,26 @@ function GoogleCalendarScheduler({
 
       // Adjust local hours to UTC
       // We use (h + 24) % 24 to handle cases where the offset pushes the hour into the previous or next day
-      // To combat the issue with -1 and appearing / disappearing select boxes, get the value directly from the select box
+
+      /* To combat the issue with -1 and appearing / disappearing select boxes, get the value directly from the select box
       const prefStartHourFromSelect = parseInt(
         document.getElementById("time-prefStartHour").value,
       );
-      const prefEndHourFromSelect = parseInt(
-        document.getElementById("time-prefEndHour").value,
-      );
-      const prefStartUTC =
-        prefStartHour === -1
-          ? -1
-          : (prefStartHourFromSelect + offsetHours + 24) % 24;
-      const prefEndUTC =
-        prefStartHour === -1
-          ? -1
-          : (prefEndHourFromSelect + offsetHours + 24) % 24;
+      const prefEndHourFromSelect =
+        prefStartHourFromSelect !== -1
+          ? parseInt(document.getElementById("time-prefEndHour").value)
+          : -1;
+      */
+
+      let s = prefStartHour;
+      let e = prefEndHour;
+
+      // If start is set but there's no preferred end time, set it to midnight
+      if (s !== -1 && e === -1) {
+        e = 0;
+      }
+      const prefStartUTC = s === -1 ? -1 : (s + offsetHours + 24) % 24;
+      const prefEndUTC = e === -1 ? -1 : (e + offsetHours + 24) % 24;
 
       onStartMatching(
         {
@@ -140,7 +137,7 @@ function GoogleCalendarScheduler({
     } else {
       setDisconnectedUsers(err.disconnectedUsers);
     }
-    setMatchingError(err.message);
+    setMatchingError(getPrettierErrorMessage(err));
   };
 
   // Duration map for select box
@@ -171,7 +168,19 @@ function GoogleCalendarScheduler({
     return options;
   };
 
-  const durationOptions = generateDurationOptions();
+  const durationOptions = useMemo(
+    () => generateDurationOptions(),
+    [generateDurationOptions],
+  );
+
+  /* When the user selects or de-selects an attendee, the already matched results
+  should go away to avoid any UI issues like incorrect numbers of available players
+  and to make it clear the scheduler needs to be re-run to check availability */
+  useEffect(() => {
+    setMatchingResults([]);
+    setDisconnectedUsers([]);
+    setMatchingError("");
+  }, [attendees]);
 
   return (
     <div className="scheduler__matcher">
@@ -203,7 +212,7 @@ function GoogleCalendarScheduler({
             selectsRange
             dateFormat="MM/dd/yyyy"
             showIcon
-            closeOnScroll={true}
+            closeOnScroll
             className="form__daterange"
           />
         </div>
@@ -234,23 +243,20 @@ function GoogleCalendarScheduler({
                 </option>
               ))}
             </select>
-            {prefStartHour !== -1 && (
-              <>
-                <span>to</span>
-                <select
-                  id="time-prefEndHour"
-                  value={prefEndHour}
-                  onChange={(e) => setPrefEndHour(parseInt(e.target.value))}
-                  className="form__select"
-                >
-                  {[...Array(24)].map((_, i) => (
-                    <option key={i} value={i}>
-                      {i > 12 ? `${i - 12} PM` : i === 0 ? "12 AM" : `${i} AM`}
-                    </option>
-                  ))}
-                </select>
-              </>
-            )}
+            <span>to</span>
+            <select
+              id="time-prefEndHour"
+              value={prefEndHour}
+              onChange={(e) => setPrefEndHour(parseInt(e.target.value))}
+              className="form__select"
+            >
+              <option value={-1}>Any</option>
+              {[...Array(24)].map((_, i) => (
+                <option key={i} value={i}>
+                  {i > 12 ? `${i - 12} PM` : i === 0 ? "12 AM" : `${i} AM`}
+                </option>
+              ))}
+            </select>
           </div>
         </label>
         <label className="matcher__duration">
@@ -260,6 +266,7 @@ function GoogleCalendarScheduler({
               value={minDuration}
               onChange={(e) => setMinDuration(parseInt(e.target.value))}
               className="form__select"
+              id="matcher-minDuration"
             >
               {durationOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -276,6 +283,7 @@ function GoogleCalendarScheduler({
               value={minUsers}
               onChange={(e) => setMinUsers(parseInt(e.target.value))}
               className="form__select"
+              id="matcher-minUsers"
             >
               {[...Array(Math.max(totalAttendees, 1))].map((_, i) => (
                 <option key={i} value={i + 1}>

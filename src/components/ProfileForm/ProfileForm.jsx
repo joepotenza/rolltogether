@@ -4,8 +4,10 @@
 */
 
 import "./ProfileForm.css";
-import { useState, useContext } from "react";
-import { useFormWithValidation } from "../../hooks/useFormWithValidation";
+import { useEffect, useState, useContext, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import validator from "validator";
+import { BANNED_WORDS } from "../../utils/constants";
 import AvatarGenerator from "../AvatarGenerator/AvatarGenerator";
 import CurrentUserContext from "../../contexts/CurrentUserContext";
 import PageContext from "../../contexts/PageContext";
@@ -13,74 +15,120 @@ import ConfirmDeleteModal from "../ConfirmDeleteModal/ConfirmDeleteModal";
 
 function ProfileForm({
   userInfo,
-  onSubmit,
+  onEditProfile,
   onReceiveOAuthCallback,
   onConfirmRevokeOAuth,
 }) {
-  const [editProfileError, setEditProfileError] = useState("");
   const { currentUser } = useContext(CurrentUserContext);
-  const { activeModal, handleCloseModal, handleOpenDeleteModal } =
-    useContext(PageContext);
+  const {
+    authAPI,
+    activeModal,
+    handleCloseModal,
+    handleOpenDeleteModal,
+    getPrettierErrorMessage,
+  } = useContext(PageContext);
+  const [editProfileError, setEditProfileError] = useState("");
+  const [editProfileSuccess, setEditProfileSuccess] = useState(false);
   const [googleError, setGoogleError] = useState("");
   const [googleSuccess, setGoogleSuccess] = useState("");
-  const validate = (values) => {
+  const defaultValues = {
+    name: userInfo.name,
+    email: userInfo.email,
+    avatar: userInfo.avatar,
+  };
+
+  // Custom resolver for form validation including banned words check
+  const resolver = (values) => {
     const errors = {};
 
+    // Name validation
     if (!values.name) {
-      errors.name = "Please enter your name.";
+      errors.name = { message: "Please enter your name" };
     } else if (values.name.length > 30) {
-      errors.name = "Name can not be longer than 30 characters.";
+      errors.name = { message: "Name can not be longer than 30 characters" };
+    } else {
+      // Check for banned words
+      const lowerName = values.name.toLowerCase();
+      if (BANNED_WORDS.some((word) => lowerName.includes(word))) {
+        errors.name = { message: "Your name contains a banned word" };
+      }
     }
 
+    // Email validation
+    if (!values.email) {
+      errors.email = { message: "Please enter an email address" };
+    } else if (!validator.isEmail(values.email)) {
+      errors.email = { message: "Please enter a valid email address" };
+    }
+
+    // Avatar validation
     if (!values.avatar) {
-      errors.avatar = "Please choose an avatar.";
+      errors.avatar = { message: "Please choose an avatar" };
     }
 
-    return errors;
+    return { values, errors };
   };
-
-  const defaultValues = { name: userInfo.name, avatar: userInfo.avatar };
 
   const {
-    values,
-    handleChange,
-    errors,
-    resetForm,
+    register,
     handleSubmit,
-    setValues,
-    setErrors,
-    setIsValid,
-  } = useFormWithValidation(defaultValues, validate);
+    watch,
+    subscribe,
+    formState: { errors, isSubmitting },
+    setValue,
+    setError,
+  } = useForm({
+    mode: "onBlur",
+    defaultValues,
+    resolver,
+  });
+
+  useEffect(() => {
+    // make sure to unsubscribe;
+    const callback = subscribe({
+      formState: {
+        values: true,
+      },
+      callback: ({ values }) => {
+        setEditProfileError("");
+      },
+    });
+
+    return () => callback();
+  }, [subscribe]);
+
+  register("avatar", { required: "Please choose an avatar" });
 
   const handleEditProfileError = (err) => {
-    setEditProfileError(err.message);
+    setEditProfileError(getPrettierErrorMessage(err));
   };
 
-  const handleEditProfileSuccess = () => {
-    document
-      .querySelector(".profile__success")
-      .classList.add("profile__success_visible");
+  const handleFormSubmit = async (data) => {
+    setEditProfileSuccess(false);
+    console.log(data);
+    await authAPI
+      .editUserProfile(data)
+      .then((user) => {
+        setEditProfileSuccess(true);
+        onEditProfile(user);
+      })
+      .catch(handleEditProfileError);
   };
+  // When the avatar chages, update the form field value
+  const handleAvatarChange = useCallback(
+    (avatar) => {
+      setValue("avatar", avatar);
+    },
+    [setValue],
+  );
 
-  const handleFormSubmit = (evt) => {
-    document
-      .querySelector(".profile__success")
-      .classList.remove("profile__success_visible");
-    handleSubmit(evt, (trimmedValues) =>
-      onSubmit(trimmedValues, handleEditProfileSuccess, handleEditProfileError),
-    );
-  };
-
-  const handleAvatarChange = (avatar) => {
-    setValues((prevValues) => {
-      const nextValues = { ...prevValues, avatar };
-      return nextValues;
-    });
-  };
-
-  const handleAvatarError = (err) => {
-    console.error(err);
-  };
+  const handleAvatarError = useCallback(
+    (err) => {
+      setError("avatar", { type: "custom", message: err.message });
+      console.error(err);
+    },
+    [setError],
+  );
 
   /*
     handleStartOAuthProcess
@@ -89,13 +137,12 @@ function ProfileForm({
   */
   const handleStartOAuthProcess = (evt) => {
     try {
-      console.log("Initializing Google Auth");
+      // console.log("Initializing Google Auth");
       evt.preventDefault();
       setGoogleError("");
       setGoogleSuccess("");
       const scope =
         "https://www.googleapis.com/auth/calendar.freebusy " +
-        "https://www.googleapis.com/auth/calendar.events.freebusy " +
         "https://www.googleapis.com/auth/calendar.calendarlist.readonly " +
         "email openid";
       const client = window.google.accounts.oauth2.initCodeClient({
@@ -118,7 +165,7 @@ function ProfileForm({
     to let the user know of its success or failure (result.isOk = true/false, result.message)
   */
   const handleBackendOAuthResponse = (result) => {
-    console.log("handleBackendOAuthResponse ", result);
+    // console.log("handleBackendOAuthResponse ", result);
     if (result.isOk) {
       // Success
       setGoogleSuccess(result.message);
@@ -139,7 +186,10 @@ function ProfileForm({
     <>
       <h1 className="profile__title">Edit Profile</h1>
       <div className="profile__manager">
-        <form className="profile__form" onSubmit={handleFormSubmit}>
+        <form
+          className="profile__form"
+          onSubmit={handleSubmit(handleFormSubmit)}
+        >
           <div className="profile__form-content">
             <div className="profile__form-fields">
               <label
@@ -150,18 +200,37 @@ function ProfileForm({
                 <input
                   type="text"
                   name="name"
-                  value={values.name}
-                  onChange={handleChange}
                   className={`form__input ${errors.name ? "form__input_has-error" : ""}`}
                   id="profile-name"
                   placeholder="Name"
                   maxLength={30}
+                  {...register("name")}
                 />
                 <span
                   className={`form__error ${errors.name ? "form__error_has-error" : ""}`}
                   id="profile-name-error"
                 >
-                  {errors.name}
+                  {errors.name?.message}
+                </span>
+              </label>
+              <label
+                htmlFor="profile-email"
+                className={`form__label ${errors.email ? "form__label_has-error" : ""}`}
+              >
+                Email
+                <input
+                  type="email"
+                  name="email"
+                  className={`form__input ${errors.email ? "form__input_has-error" : ""}`}
+                  id="profile-email"
+                  placeholder="Email"
+                  {...register("email")}
+                />
+                <span
+                  className={`form__error ${errors.email ? "form__error_has-error" : ""}`}
+                  id="profile-email-error"
+                >
+                  {errors.email?.message}
                 </span>
               </label>
             </div>
@@ -182,24 +251,27 @@ function ProfileForm({
                 className={`form__error ${errors.avatar ? "form__error_has-error" : ""}`}
                 id="profile-avatar-error"
               >
-                {errors.avatar}
+                {errors.avatar?.message}
               </span>
             </div>
           </div>
 
           <span
-            className={`form__error profile__error ${editProfileError ? "form__error_has-error" : ""}`}
+            className={`form__error form__error_bold profile__error ${editProfileError ? "form__error_has-error" : ""}`}
           >
             {editProfileError}
           </span>
-          <span className="profile__success">
+          <span
+            className={`profile__success ${editProfileSuccess ? "profile__success_visible" : ""}`}
+          >
             Profile updated successfully!
           </span>
           <button
             className={`form__submit-btn form__submit-btn-type_profile`}
             type="submit"
+            disabled={isSubmitting}
           >
-            Edit Profile
+            {isSubmitting ? "Submitting..." : "Edit Profile"}
           </button>
         </form>
         <div className="profile__google">

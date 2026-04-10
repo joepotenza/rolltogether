@@ -202,9 +202,8 @@ function Group() {
   };
 
   //Delete session
-  const handleDeleteSession = (sessionId, onSuccess, onError) => {
-    console.log("deleting session ", sessionId);
-    groupAPI
+  const handleDeleteSession = async (sessionId, onSuccess, onError) => {
+    await groupAPI
       .deleteSession(sessionId)
       .then((response) => {
         getGroupSessions();
@@ -221,11 +220,10 @@ function Group() {
   };
 
   // after submitting "Schedule Session" form
-  const handleScheduleSession = (values, onError) => {
-    console.log("handleScheduleSession ", values);
+  const handleScheduleSession = async (values, onError) => {
     if (!values._id) {
       // submit new group
-      groupAPI
+      await groupAPI
         .createSession(values)
         .then((/* session */) => {
           setSelectedTab("sessionList");
@@ -234,7 +232,7 @@ function Group() {
         .catch(onError);
     } else {
       // submit edit session
-      groupAPI
+      await groupAPI
         .editSession(values._id, values)
         .then((/* session */) => {
           setSelectedTab("sessionList");
@@ -245,17 +243,13 @@ function Group() {
   };
 
   // Handle Application submission
-  const handleApplicationSubmission = (values, afterSubmit, onError) => {
+  const handleApplicationSubmission = async (values, onError) => {
     const { message } = values;
     const newAppList = [...myApplicationList];
-    groupAPI
+    await groupAPI
       .submitApplication({ groupId, message })
       .then((app) => {
-        newAppList.unshift(app);
-        setMyApplicationList(newAppList);
-        if (afterSubmit) {
-          afterSubmit();
-        }
+        getMyApplications();
         setSelectedTab("description");
       })
       .catch(onError);
@@ -305,7 +299,7 @@ function Group() {
     ErrorUI || (
       <main className="group">
         {isGroupLoading ? (
-          <PreLoader />
+          <PreLoader fill />
         ) : (
           <>
             {/*Set document title*/}
@@ -327,7 +321,10 @@ function Group() {
                     displayMode={displayMode}
                     onGoBack={() => setSelectedTab("description")}
                     onOpenEditForm={() => setSelectedTab("edit")}
-                    onOpenScheduler={() => setSelectedTab("scheduler")}
+                    onOpenScheduler={() => {
+                      setEditSessionInfo({});
+                      setSelectedTab("scheduler");
+                    }}
                     onOpenSessionList={() => setSelectedTab("sessionList")}
                     onOpenApplicationList={() =>
                       setSelectedTab("applicationList")
@@ -352,7 +349,10 @@ function Group() {
                     groupInfo={groupInfo}
                     sessionInfo={editSessionInfo}
                     onSubmit={handleScheduleSession}
-                    onGoBack={() => setSelectedTab("description")}
+                    onGoBack={() => {
+                      setEditSessionInfo({});
+                      setSelectedTab("description");
+                    }}
                   />
                 )}
 

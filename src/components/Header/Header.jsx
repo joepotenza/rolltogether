@@ -3,7 +3,7 @@
   Site Header
 */
 
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext } from "react";
 import { Link, useLocation } from "react-router";
 import "./Header.css";
 import logo from "../../images/logo.svg";
@@ -51,7 +51,7 @@ function Header({ loginHandler, logoutHandler }) {
   return (
     <>
       <header
-        className={`header ${isMobileMenuOpened ? "header_menu_open" : ""}`}
+        className={`header ${isMobileMenuOpened ? "header_menu_open" : ""} ${!isLoggedIn ? `header__menu_loggedIn_false` : ""}`}
       >
         <Link to="/" className="header__logo">
           <img className="logo__icon" src={logo} />
@@ -70,16 +70,13 @@ function Header({ loginHandler, logoutHandler }) {
               onMouseEnter={() => toggleDropdown("groups", true)}
               onMouseLeave={() => toggleDropdown("groups", false)}
             >
-              <button
-                className="dropdown__top dropdown__top_type_groups"
-                onClick={(evt) => {
-                  evt.preventDefault();
-                  toggleDropdown("groups", !dropdowns.groups.isOpen);
-                }}
-              >
+              <button className="dropdown__top dropdown__top_type_groups">
                 Groups
               </button>
-              <div className="dropdown__menu">
+              <div
+                className="dropdown__menu"
+                onClick={() => toggleDropdown("groups", false)}
+              >
                 <Link
                   className="dropdown__link dropdown__link_has-icon dropdown__link_type_search"
                   to="/"
@@ -122,7 +119,6 @@ function Header({ loginHandler, logoutHandler }) {
                   reloadDocument
                   onClick={(evt) => {
                     if (!isMobileMenuOpened) evt.preventDefault();
-                    toggleDropdown("profile", !dropdowns.profile.isOpen);
                   }}
                 >
                   {currentUser.username}
@@ -133,13 +129,15 @@ function Header({ loginHandler, logoutHandler }) {
                   reloadDocument
                   onClick={(evt) => {
                     if (!isMobileMenuOpened) evt.preventDefault();
-                    toggleDropdown("profile", !dropdowns.profile.isOpen);
                   }}
                 >
                   <UserAvatar />
                 </Link>
               </div>
-              <div className={`dropdown__menu`}>
+              <div
+                className={`dropdown__menu`}
+                onClick={() => toggleDropdown("profile", false)}
+              >
                 <Link
                   to="/profile"
                   className="dropdown__link dropdown__link_has-icon dropdown__link_type_profile"
@@ -148,13 +146,12 @@ function Header({ loginHandler, logoutHandler }) {
                 >
                   My Profile
                 </Link>
-                <Link
-                  to="/logout"
+                <button
                   className="dropdown__link dropdown__link_has-icon dropdown__link_type_logout"
                   onClick={handleLogoutLink}
                 >
                   Logout
-                </Link>
+                </button>
               </div>
             </div>
           ) : (

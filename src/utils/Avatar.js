@@ -15,6 +15,7 @@ export default class Avatar {
     limit = 10,
     onSuccess = null,
     onError = null,
+    onStateChange = null,
     options = {},
   }) {
     this._target = target;
@@ -24,6 +25,7 @@ export default class Avatar {
     this._index = -1;
     this._onSuccess = onSuccess;
     this._onError = onError;
+    this._onStateChange = onStateChange;
     this._defaultValue = defaultValue;
     this._generators = {
       DiceBear: new DiceBearAvatar(this._options),
@@ -50,6 +52,9 @@ export default class Avatar {
     if (this._history.length > 10) {
       this._history.shift();
       this._index--;
+    }
+    if (this._onStateChange) {
+      this._onStateChange({ index: this._index, length: this._history.length });
     }
   }
   generate() {
@@ -83,11 +88,17 @@ export default class Avatar {
   prev() {
     this._index = this._index <= 0 ? this._index : this._index - 1;
     this.display();
+    if (this._onStateChange) {
+      this._onStateChange({ index: this._index, length: this._history.length });
+    }
   }
   next() {
     this._index =
       this._index >= this._history.length - 1 ? this._index : this._index + 1;
     this.display();
+    if (this._onStateChange) {
+      this._onStateChange({ index: this._index, length: this._history.length });
+    }
   }
   setType(type) {
     this._type = type;

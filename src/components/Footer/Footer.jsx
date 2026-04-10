@@ -4,6 +4,7 @@
 */
 
 import "./Footer.css";
+import { Link } from "react-router";
 
 function Footer() {
   return (
@@ -17,7 +18,15 @@ function Footer() {
           D20 Dice Vectors by Vecteezy
         </a>
       </div>
-      <p className="footer__copyright">&copy; 2026</p>
+      <p className="footer__copyright">
+        <span>&copy; 2026</span>
+        <span>
+          &#8286; <Link to="/privacy">Privacy Policy</Link>
+        </span>
+        <span>
+          &#8286; <Link to="/terms">Terms of Service</Link>
+        </span>
+      </p>
     </footer>
   );
 }

@@ -18,6 +18,18 @@
 .footer__copyright {
   margin: 0;
 }
+.footer__copyright {
+  display: flex;
+  gap: 6px;
+}
 .footer__attribution {
   color: #000;
+}
+@media screen and (max-width: 630px) {
+  .footer {
+    padding-bottom: 60px;
+  }
+  .footer__copyright {
+    flex-direction: column;
+  }
 }

@@ -45,9 +45,12 @@ export default class ApiBase {
 
         // Otherwise try the JSON just to get any error info
         return res.json().then((data) => {
-          const { statusCode = res.status, message } = data;
+          const { statusCode = res.status, message, validation } = data;
           const myError = new Error(message);
           myError.statusCode = statusCode;
+          if (validation) {
+            myError.validation = validation; // get the nicer error message from Joi validation on backend
+          }
           return Promise.reject(myError);
         });
       } catch (err) {

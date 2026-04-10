@@ -5,8 +5,9 @@
 
 import "../Form/Form.css";
 import "./GroupForm.css";
-import { useFormWithValidation } from "../../hooks/useFormWithValidation";
 import { useEffect, useState, useContext } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { BANNED_WORDS } from "../../utils/constants";
 import PageContext from "../../contexts/PageContext";
 import { useNavigate } from "react-router";
 import WYSIWYG from "../WYSIWYG/WYSIWYG";
@@ -15,8 +16,7 @@ import DOMPurify from "dompurify";
 function GroupForm({ groupInfo, onSubmit, onGoBack }) {
   const [submitError, setSubmitError] = useState("");
   const navigate = useNavigate();
-  const { groupAPI } = useContext(PageContext);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { groupAPI, getPrettierErrorMessage } = useContext(PageContext);
 
   let defaultValues;
   if (groupInfo) {
@@ -47,116 +47,195 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
     };
   }
 
-  const validate = (values) => {
+  // Custom resolver for form validation including banned words check
+  const resolver = (values) => {
     const errors = {};
 
+    // Name validation
     if (!values.name) {
-      errors.name = "Please enter a group name";
-    } else if (values.name.length < 3) {
-      errors.name = "Group name must be at least 3 characters";
+      errors.name = { message: "Please enter a group name" };
     } else if (values.name.length > 300) {
-      errors.name = "Group name must be less than 300 characters";
+      errors.name = { message: "Group can not be longer than 300 characters" };
+    } else if (values.name.length < 3) {
+      errors.name = { message: "Group name must be at least 3 characters" };
+    } else {
+      // Check for banned words
+      const lowerName = values.name.toLowerCase();
+      if (BANNED_WORDS.some((word) => lowerName.includes(word))) {
+        errors.name = { message: "Your group name contains a banned word" };
+      }
     }
 
+    // Summary validation
     if (!values.summary) {
-      errors.summary = "Please enter a short summary";
+      errors.summary = { message: "Please enter a short summary" };
     } else if (values.summary.length > 500) {
-      errors.summary = "Summary can not be longer than 500 characters";
+      errors.summary = {
+        message: "Summary can not be longer than 500 characters",
+      };
+    } else if (values.summary.length < 10) {
+      errors.summary = { message: "Summary must be at least 10 characters" };
+    } else {
+      // Check for banned words
+      const lowerSummary = values.summary.toLowerCase();
+      if (BANNED_WORDS.some((word) => lowerSummary.includes(word))) {
+        errors.summary = { message: "Your summary contains a banned word" };
+      }
     }
 
-    if (!values.description) {
-      errors.description = "Please enter a group description";
-    }
-
-    if (!values.system) {
-      errors.system = "Please choose a game edition";
-    }
-
+    // Story validation
     if (values.isHomebrew === "false" && !values.story) {
-      errors.story = "Please enter the name of the pre-made campaign";
+      errors.story = {
+        message: "Please enter the name of the campaign story",
+      };
+    } else if (values.story && values.story.length > 300) {
+      errors.story = {
+        message: "Story name can not be longer than 300 characters",
+      };
+    } else if (values.story) {
+      // Check for banned words
+      const lowerStory = values.story.toLowerCase();
+      if (BANNED_WORDS.some((word) => lowerStory.includes(word))) {
+        errors.story = { message: "Your story name contains a banned word" };
+      }
     }
 
+    // Game system validation
+    if (!values.system) {
+      errors.system = { message: "Please choose a game edition" };
+    }
+
+    // Game type validation
     if (!values.type) {
-      errors.type = "Please choose how your group will meet";
+      errors.type = { message: "Please choose how your group will meet" };
     }
 
-    if (parseInt(values.openSlots) < 0) {
-      errors.openSlots = "Please enter a valid number";
+    // Slot validation
+    if (typeof values.openSlots === "undefined") {
+      errors.openSlots = { message: "Please enter the number of open seats" };
+    } else if (parseInt(values.openSlots) < 0) {
+      errors.openSlots = {
+        message: "Please enter a valid number of open seats",
+      };
+    }
+    if (!values.slotLimit) {
+      errors.slotLimit = {
+        message: "Please enter the number of total players",
+      };
+    } else if (parseInt(values.slotLimit) < 1) {
+      errors.slotLimit = {
+        message: "Please enter a valid number of total players",
+      };
     }
 
-    if (parseInt(values.slotLimit) < 1) {
-      errors.slotLimit = "Please enter the seat limit";
+    // Description validation
+    if (!values.description) {
+      errors.description = {
+        message: "Please enter a description for your group",
+      };
+    } else {
+      const onlyText = DOMPurify.sanitize(values.description, {
+        ALLOWED_TAGS: [],
+      })
+        .replaceAll("\u00A0", " ")
+        .replaceAll("&nbsp;", " ")
+        .replace(/[\r\n]+/g, " ")
+        .trim();
+      if (onlyText.length === 0) {
+        errors.description = {
+          message: "Please enter a description for your group",
+        };
+      } else {
+        // Check for banned words
+        const lowerDescription = onlyText.toLowerCase();
+
+        if (BANNED_WORDS.some((word) => lowerDescription.includes(word))) {
+          errors.description = {
+            message: "Your description contains a banned word",
+          };
+        }
+      }
     }
 
-    return errors;
+    return { values, errors };
   };
 
   const {
-    values,
-    handleChange,
-    handleWYSIWYGChange,
-    errors,
-    resetForm,
+    register,
     handleSubmit,
-  } = useFormWithValidation(defaultValues, validate);
+    subscribe,
+    control,
+    formState: { errors, isSubmitting },
+    setValue,
+    getValues,
+  } = useForm({
+    mode: "onBlur",
+    defaultValues,
+    resolver,
+  });
+
+  const isHomebrew = useWatch({ control, name: "isHomebrew" });
 
   const handleSubmitError = (err) => {
-    setIsSubmitting(false);
-    if (err.message === "Failed to fetch") {
-      setSubmitError("Could not connect to database. Please try again.");
-    } else {
-      setSubmitError(err.message);
-    }
+    setSubmitError(getPrettierErrorMessage(err));
   };
 
   // submit form: sanitize the data and submit to API
-  const handleFormSubmit = (evt) => {
-    setIsSubmitting(true);
-    handleSubmit(evt, (trimmedValues) => {
-      const slots = {
-        open: parseInt(trimmedValues.openSlots),
-        total: parseInt(trimmedValues.slotLimit),
-      };
-      const data = { ...trimmedValues, slots };
-      data.name = DOMPurify.sanitize(data.name);
-      data.summary = DOMPurify.sanitize(data.summary);
-      data.story = trimmedValues.isHomebrew
+  const handleFormSubmit = async (values) => {
+    const slots = {
+      open: parseInt(getValues("openSlots")),
+      total: parseInt(getValues("slotLimit")),
+    };
+    const data = { ...values, slots };
+    data.name = DOMPurify.sanitize(data.name);
+    data.summary = DOMPurify.sanitize(data.summary);
+    data.story =
+      data.isHomebrew.toString() === "true"
         ? ""
         : DOMPurify.sanitize(data.story);
-      data.description = DOMPurify.sanitize(data.description);
+    data.description = DOMPurify.sanitize(data.description);
 
-      if (!groupInfo) {
-        // submit new group
-        groupAPI
-          .createGroup(data)
-          .then((group) => {
-            setIsSubmitting(false);
-            navigate(`/group/${group._id}?created=1`);
-          })
-          .catch(handleSubmitError);
-      } else if (onSubmit) {
-        // submit edit group
-        groupAPI
-          .editGroup(groupInfo._id, values)
-          .then((group) => {
-            setIsSubmitting(false);
-            onSubmit(group);
-          })
-          .catch(handleSubmitError);
-      }
-    });
+    // console.log(data);
+
+    if (!groupInfo) {
+      // submit new group
+      await groupAPI
+        .createGroup(data)
+        .then((group) => {
+          navigate(`/group/${group._id}?created=1`);
+        })
+        .catch(handleSubmitError);
+    } else {
+      // submit edit group
+      await groupAPI
+        .editGroup(groupInfo._id, data)
+        .then((group) => {
+          onSubmit(group);
+        })
+        .catch(handleSubmitError);
+    }
   };
 
   useEffect(() => {
-    resetForm();
-  }, []);
+    // make sure to unsubscribe;
+    const callback = subscribe({
+      formState: {
+        values: true,
+      },
+      callback: ({ values }) => {
+        setSubmitError("");
+      },
+    });
+
+    return () => callback();
+  }, [subscribe]);
 
   return (
     <div className="groupform">
       <h1 className="groupform__title">
         {groupInfo ? "Edit Group" : "Create a New Group"}
       </h1>
-      <form name="group-form" onSubmit={handleFormSubmit}>
+      <form name="group-form" onSubmit={handleSubmit(handleFormSubmit)}>
         <label
           htmlFor="group-name"
           className={`form__label ${errors.name ? "form__label_has-error" : ""}`}
@@ -165,18 +244,18 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
           <input
             type="text"
             name="name"
-            value={values.name}
-            onChange={handleChange}
             className={`form__input ${errors.name ? "form__input_has-error" : ""}`}
             id="group-name"
             placeholder="Name"
+            minLength={3}
             maxLength={300}
+            {...register("name")}
           />
           <span
             className={`form__error ${errors.name ? "form__error_has-error" : ""}`}
             id="group-name-error"
           >
-            {errors.name}
+            {errors.name?.message}
           </span>
         </label>
         <label
@@ -186,18 +265,18 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
           Summary (for listings page)
           <textarea
             name="summary"
-            value={values.summary}
-            onChange={handleChange}
             className={`form__input form__textarea ${errors.summary ? "form__input_has-error" : ""}`}
             id="group-summary"
             placeholder="Enter a short summary to display on the main listings page"
             maxLength={500}
+            minLength={10}
+            {...register("summary")}
           />
           <span
             className={`form__error ${errors.summary ? "form__error_has-error" : ""}`}
             id="group-summary-error"
           >
-            {errors.summary}
+            {errors.summary?.message}
           </span>
         </label>
         <div className="groupform__details">
@@ -210,16 +289,15 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
               <select
                 name="isHomebrew"
                 className="form__select"
-                defaultValue={defaultValues.isHomebrew}
-                onChange={handleChange}
                 id="group-homebrew"
+                {...register("isHomebrew")}
               >
                 <option value="false">Pre-made</option>
                 <option value="true">Homebrew</option>
               </select>
             </label>
           </div>
-          {(!values.isHomebrew || values.isHomebrew === "false") && (
+          {(!isHomebrew || isHomebrew === "false") && (
             <div className="groupform__detail">
               <label
                 htmlFor="group-story"
@@ -229,12 +307,11 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
                 <input
                   type="text"
                   name="story"
-                  value={values.story}
-                  onChange={handleChange}
                   className={`form__input ${errors.story ? "form__input_has-error" : ""}`}
                   id="group-story"
                   placeholder="Story name"
                   maxLength={300}
+                  {...register("story")}
                 />
               </label>
             </div>
@@ -244,7 +321,7 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
           className={`form__error form__error_bold ${errors.story ? "form__error_has-error" : ""}`}
           id="group-story-error"
         >
-          {errors.story}
+          {errors.story?.message}
         </span>
 
         <div className="groupform__details">
@@ -256,10 +333,9 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
               Game Edition
               <select
                 name="system"
-                className="form__select"
-                defaultValue={defaultValues.system}
-                onChange={handleChange}
+                className={`form__select ${errors.system ? "form__select_has-error" : ""}`}
                 id="group-system"
+                {...register("system")}
               >
                 <option value=""></option>
                 <option value="69c9a1262f30caed2bb17327">D&amp;D 3.5e</option>
@@ -276,10 +352,9 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
               Meeting Type
               <select
                 name="type"
-                className="form__select"
-                defaultValue={defaultValues.type}
-                onChange={handleChange}
+                className={`form__select ${errors.type ? "form__select_has-error" : ""}`}
                 id="group-type"
+                {...register("type")}
               >
                 <option value=""></option>
                 <option value="online">Online</option>
@@ -294,13 +369,13 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
             className={`form__error ${errors.system ? "form__error_has-error" : ""}`}
             id="group-system-error"
           >
-            {errors.system}
+            {errors.system?.message}
           </span>
           <span
             className={`form__error ${errors.type ? "form__error_has-error" : ""}`}
             id="group-type-error"
           >
-            {errors.type}
+            {errors.type?.message}
           </span>
         </div>
 
@@ -315,12 +390,11 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
                 type="number"
                 min={0}
                 name="openSlots"
-                value={values.openSlots}
-                onChange={handleChange}
                 className={`form__input form__input_type_number ${errors.openSlots ? "form__input_has-error" : ""}`}
                 id="group-openSlots"
                 placeholder=""
                 maxLength={3}
+                {...register("openSlots")}
               />
             </label>
           </div>
@@ -334,12 +408,11 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
                 type="number"
                 min={1}
                 name="slotLimit"
-                value={values.slotLimit}
-                onChange={handleChange}
                 className={`form__input form__input_type_number ${errors.slotLimit ? "form__input_has-error" : ""}`}
                 id="group-slotLimit"
                 placeholder=""
                 maxLength={3}
+                {...register("slotLimit")}
               />
             </label>
           </div>
@@ -349,13 +422,13 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
             className={`form__error ${errors.openSlots ? "form__error_has-error" : ""}`}
             id="group-openSlots-error"
           >
-            {errors.openSlots}
+            {errors.openSlots?.message}
           </span>
           <span
             className={`form__error ${errors.slotLimit ? "form__error_has-error" : ""}`}
             id="group-slotLimit-error"
           >
-            {errors.slotLimit}
+            {errors.slotLimit?.message}
           </span>
         </div>
         <label
@@ -365,15 +438,18 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
           Description
         </label>
         <WYSIWYG
-          initialContent={values.description}
-          onChange={(content) => handleWYSIWYGChange("description", content)}
+          initialContent={defaultValues.description}
+          onChange={(content) => {
+            console.log("content set to: ", content);
+            setValue("description", content);
+          }}
         />
         {/*options={{ toolbar: editorToolbar }}*/}
         <span
           className={`form__error form__error_bold ${errors.description ? "form__error_has-error" : ""}`}
           id="groupform-description-error"
         >
-          {errors.description}
+          {errors.description?.message}
         </span>
         <span
           className={`form__error form__error_bold ${submitError ? "form__error_has-error" : ""}`}
@@ -385,15 +461,21 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
           type="submit"
           disabled={isSubmitting}
         >
-          {groupInfo ? "Edit Group" : "Create Group"}
+          {isSubmitting
+            ? "Submitting..."
+            : groupInfo
+              ? "Edit Group"
+              : "Create Group"}
         </button>
-        <button
-          className="groupform_cancel-btn"
-          onClick={onGoBack}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </button>
+        {groupInfo && (
+          <button
+            className="groupform__cancel-btn"
+            onClick={onGoBack}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+        )}
       </form>
     </div>
   );

@@ -34,12 +34,30 @@ function GroupSessionList({
   // show modal with session notes
   const viewSessionNotes = (sessionId) => {
     const session = sessionList.find((session) => session._id === sessionId);
-    const preSessionNotes = session.preSessionNotes;
-    const postSessionNotes = session.postSessionNotes;
-    document.querySelector(".modal__preSessionNotes").innerHTML =
-      DOMPurify.sanitize(preSessionNotes);
-    document.querySelector(".modal__postSessionNotes").innerHTML =
-      DOMPurify.sanitize(postSessionNotes);
+    const notesMode = session.areNotesVisibleToMembers;
+    const { preSessionNotes, postSessionNotes } = session;
+    const preTitle = document.querySelector(".modal__title_pre-session");
+    const preContent = document.querySelector(".modal__pre-session-notes");
+    const postTitle = document.querySelector(".modal__title_post-session");
+    const postContent = document.querySelector(".modal__post-session-notes");
+    // Show pre-session notes
+    if (isOwner || notesMode === "pre" || notesMode === "all") {
+      preTitle.classList.remove("modal__title_hidden");
+      preContent.innerHTML = DOMPurify.sanitize(preSessionNotes);
+    } else {
+      preTitle.classList.add("modal__title_hidden");
+      preContent.innerHTML = "";
+    }
+
+    // Show post-session notes
+    if (isOwner || notesMode === "post" || notesMode === "all") {
+      postTitle.classList.remove("modal__title_hidden");
+      postContent.innerHTML = DOMPurify.sanitize(postSessionNotes);
+    } else {
+      postTitle.classList.add("modal__title_hidden");
+      postContent.innerHTML = "";
+    }
+
     handleOpenSessionNotesModal();
   };
 
@@ -66,8 +84,8 @@ function GroupSessionList({
         isOpen={activeModal === "delete"}
         onClose={handleCloseModal}
         confirmationText={deleteSessionText}
-        confirmDeleteHandler={(success, fail) =>
-          handleDeleteSession(deleteSessionId, success, (err) => {
+        confirmDeleteHandler={async (success, fail) =>
+          await handleDeleteSession(deleteSessionId, success, (err) => {
             handleDeleteSessionError(err);
             fail(err);
           })
@@ -88,14 +106,14 @@ function GroupSessionList({
           <h2 className="modal__title">Session Notes</h2>
         </div>
         <div className="modal__scroller">
-          <h2 className="modal__title modal__title_type_notes">
+          <h2 className="modal__title modal__title_type_notes modal__title_pre-session">
             Pre-Session Notes
           </h2>
-          <div className="modal__preSessionNotes"></div>
-          <h2 className="modal__title modal__title_type_notes">
+          <div className="modal__pre-session-notes"></div>
+          <h2 className="modal__title modal__title_type_notes modal__title_post-session">
             Post-Session Notes
           </h2>
-          <div className="modal__postSessionNotes"></div>
+          <div className="modal__post-session-notes"></div>
         </div>
       </Modal>
       <h2 className="sessions__header">
@@ -132,7 +150,8 @@ function GroupSessionList({
                     ))}
                   </div>
                   <div className="session__buttons">
-                    {(isOwner || session.areNotesVisibleToMembers) && (
+                    {(isOwner ||
+                      session.areNotesVisibleToMembers !== "none") && (
                       <button
                         className="session__button session__button_type_notes"
                         onClick={() => viewSessionNotes(session._id)}

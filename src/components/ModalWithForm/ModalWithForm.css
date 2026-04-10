@@ -52,7 +52,8 @@
   border-radius: 4px;
   cursor: pointer;
   line-height: 100%;
-  width: 124px;
+  min-width: 124px;
+  width: max-content;
   height: 36px;
   margin-top: 24px;
   font-family: "CabinetGroteskBold";
@@ -96,6 +97,8 @@
   opacity: 0.6;
 }
 
+.modal__submit-btn:disabled,
+.modal__submit-btn:disabled:hover,
 .modal__submit-btn_disabled,
 .modal__submit-btn_disabled:hover {
   opacity: 0.3;

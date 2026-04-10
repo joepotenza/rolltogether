@@ -6,11 +6,11 @@ import APIBase from "./APIBase.js";
 
 export default class AuthAPI extends APIBase {
   // User Signup
-  registerUser({ name, avatar, username, email, password }) {
+  registerUser({ name, avatar, username, email, password, invite }) {
     return this._makeAPICall({
       endpoint: "/signup",
       method: "POST",
-      body: JSON.stringify({ name, avatar, username, email, password }),
+      body: JSON.stringify({ name, avatar, username, email, password, invite }),
     });
   }
 

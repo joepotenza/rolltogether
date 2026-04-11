@@ -118,13 +118,17 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
         message: "Please enter a valid number of open seats",
       };
     }
-    if (!values.slotLimit) {
+    if (typeof values.slotLimit === "undefined") {
       errors.slotLimit = {
         message: "Please enter the number of total players",
       };
     } else if (parseInt(values.slotLimit) < 1) {
       errors.slotLimit = {
         message: "Please enter a valid number of total players",
+      };
+    } else if (parseInt(values.openSlots) > parseInt(values.slotLimit)) {
+      errors.openSlots = {
+        message: "Open seats can not be more than total seats",
       };
     }
 

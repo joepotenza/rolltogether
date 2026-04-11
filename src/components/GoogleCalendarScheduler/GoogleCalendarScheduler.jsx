@@ -176,11 +176,13 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
   /* When the user selects or de-selects an attendee, the already matched results
   should go away to avoid any UI issues like incorrect numbers of available players
   and to make it clear the scheduler needs to be re-run to check availability */
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setMatchingResults([]);
     setDisconnectedUsers([]);
     setMatchingError("");
   }, [attendees]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <div className="scheduler__matcher">

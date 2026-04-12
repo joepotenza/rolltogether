@@ -19,7 +19,7 @@ function Footer() {
         </a>
       </div>
       <p className="footer__copyright">
-        <span>&copy; 2026</span>
+        <span>2026</span>
         <span>
           &#8286; <Link to="/privacy">Privacy Policy</Link>
         </span>

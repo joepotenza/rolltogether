@@ -19,7 +19,8 @@
   --group-type-hybrid: #1e3a8a;
 }
 
-.page {
+.page,
+body {
   background-color: #f7f9fb;
   margin: 0;
   font-family: "CabinetGrotesk", Arial, Helvetica, sans-serif;

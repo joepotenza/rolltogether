@@ -164,6 +164,7 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
     formState: { errors, isSubmitting },
     setValue,
     getValues,
+    clearErrors,
   } = methods;
 
   const { replace } = useFieldArray({
@@ -247,6 +248,7 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
   ) => {
     //clear date picker and make sure it isn't shown
     setValue("date", "");
+    clearErrors("date");
     setTimeChosenFromGoogleScheduler(false);
     groupAPI
       .freebusy({
@@ -269,8 +271,12 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
 
   // When a date is picked from the google calendar scheduler, set the date and flag it so the session date form field gets shown
   const handleSelectGoogleCalendarTime = (chosenDate) => {
-    setValue("date", chosenDate);
-    setTimeChosenFromGoogleScheduler(chosenDate && chosenDate !== "");
+    const isDateValid = chosenDate && !isNaN(Date.parse(chosenDate));
+    if (isDateValid) {
+      setValue("date", chosenDate);
+      clearErrors("date");
+    }
+    setTimeChosenFromGoogleScheduler(isDateValid);
   };
 
   // When switching from manual to google mode, clear out the date variable so it's not hidden
@@ -496,11 +502,6 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
                 </select>
               </label>
 
-              <span
-                className={`form__error form__error_bold ${submitError ? "form__error_has-error" : ""}`}
-              >
-                {submitError}
-              </span>
               <button
                 className={`form__submit-btn form__submit-btn-type_scheduler`}
                 type="submit"
@@ -519,6 +520,11 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
               >
                 Cancel
               </button>
+              <span
+                className={`form__error form__error_bold ${submitError ? "form__error_has-error" : ""}`}
+              >
+                {submitError}
+              </span>
             </form>
           </>
         )}

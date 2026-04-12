@@ -175,7 +175,8 @@
   flex-direction: column;
   justify-content: center;
   gap: 8px;
-  width: 60px;
+  min-width: 60px;
+  align-items: center;
 }
 .attendee__avatar {
   width: 60px;

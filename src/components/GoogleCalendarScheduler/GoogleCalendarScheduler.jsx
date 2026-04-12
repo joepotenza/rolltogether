@@ -90,9 +90,9 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
       let s = prefStartHour;
       let e = prefEndHour;
 
-      // If start is set but there's no preferred end time, set it to midnight
+      // If start is set but there's no preferred end time, set it to a 24 hour window
       if (s !== -1 && e === -1) {
-        e = 0;
+        e = s === 0 ? 23 : s - 1;
       }
       const prefStartUTC = s === -1 ? -1 : (s + offsetHours + 24) % 24;
       const prefEndUTC = e === -1 ? -1 : (e + offsetHours + 24) % 24;
@@ -178,6 +178,7 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
   and to make it clear the scheduler needs to be re-run to check availability */
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
+    console.log("attendees changed, clearing results");
     setMatchingResults([]);
     setDisconnectedUsers([]);
     setMatchingError("");
@@ -304,10 +305,13 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
           !enoughAttendeesAvailable || !start || !end || isMatchingCalendars
         }
       >
-        Check availability for{" "}
-        {totalAttendees !== 1
-          ? `${totalAttendees} people`
-          : `${totalAttendees} person`}
+        {!enoughAttendeesAvailable
+          ? "Select attendees with calendars to match"
+          : `Check availability for ${
+              totalAttendees !== 1
+                ? `${totalAttendees} people`
+                : `${totalAttendees} person`
+            }`}
       </button>
 
       <span

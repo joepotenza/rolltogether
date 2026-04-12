@@ -172,6 +172,7 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
     formState: { errors, isSubmitting },
     setValue,
     getValues,
+    clearErrors,
   } = useForm({
     mode: "onBlur",
     defaultValues,
@@ -180,8 +181,14 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
 
   const isHomebrew = useWatch({ control, name: "isHomebrew" });
 
+  // handleSubmitError will trigger if server responds with error
   const handleSubmitError = (err) => {
     setSubmitError(getPrettierErrorMessage(err));
+  };
+
+  // handleFormError will trigger if any validation errors occur
+  const handleFormError = (errors) => {
+    setSubmitError("Please check your input and try again");
   };
 
   // submit form: sanitize the data and submit to API
@@ -239,7 +246,10 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
       <h1 className="groupform__title">
         {groupInfo ? "Edit Group" : "Create a New Group"}
       </h1>
-      <form name="group-form" onSubmit={handleSubmit(handleFormSubmit)}>
+      <form
+        name="group-form"
+        onSubmit={handleSubmit(handleFormSubmit, handleFormError)}
+      >
         <label
           htmlFor="group-name"
           className={`form__label ${errors.name ? "form__label_has-error" : ""}`}
@@ -444,8 +454,8 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
         <WYSIWYG
           initialContent={defaultValues.description}
           onChange={(content) => {
-            console.log("content set to: ", content);
             setValue("description", content);
+            if (content.length > 0) clearErrors("description");
           }}
         />
         {/*options={{ toolbar: editorToolbar }}*/}
@@ -454,11 +464,6 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
           id="groupform-description-error"
         >
           {errors.description?.message}
-        </span>
-        <span
-          className={`form__error form__error_bold ${submitError ? "form__error_has-error" : ""}`}
-        >
-          {submitError}
         </span>
         <button
           className={`form__submit-btn form__submit-btn-type_application`}
@@ -480,6 +485,11 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
             Cancel
           </button>
         )}
+        <span
+          className={`form__error form__error_bold ${submitError ? "form__error_has-error" : ""}`}
+        >
+          {submitError}
+        </span>
       </form>
     </div>
   );

@@ -13,6 +13,8 @@ import CurrentUserContext from "../../contexts/CurrentUserContext";
 import PageContext from "../../contexts/PageContext";
 import ConfirmDeleteModal from "../ConfirmDeleteModal/ConfirmDeleteModal";
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 function ProfileForm({
   userInfo,
   onEditProfile,
@@ -146,8 +148,7 @@ function ProfileForm({
         "https://www.googleapis.com/auth/calendar.calendarlist.readonly " +
         "email openid";
       const client = window.google.accounts.oauth2.initCodeClient({
-        client_id:
-          "464925076280-6duigj70rvmdvm0ia1gbevbfkvr8gclm.apps.googleusercontent.com",
+        client_id: googleClientId,
         scope,
         callback: (response) => {
           onReceiveOAuthCallback(response, scope, handleBackendOAuthResponse);

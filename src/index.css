@@ -1,18 +1,19 @@
 @import url(./vendor/normalize.css);
 @font-face {
-  src: url("./fonts/cabinet-grotesk/CabinetGrotesk-Regular.otf")
+  src: url("./vendor/fonts/cabinet-grotesk/CabinetGrotesk-Regular.otf")
     format("opentype");
   font-family: "CabinetGrotesk";
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
-  src: url("./fonts/cabinet-grotesk/CabinetGrotesk-Bold.otf") format("opentype");
+  src: url("./vendor/fonts/cabinet-grotesk/CabinetGrotesk-Bold.otf")
+    format("opentype");
   font-family: "CabinetGroteskBold";
   font-weight: 700;
   font-style: normal;
 }
 @font-face {
-  src: url("./fonts/chillax/Chillax-Variable.ttf") format("truetype");
+  src: url("./vendor/fonts/chillax/Chillax-Variable.ttf") format("truetype");
   font-family: "ChillaxVariable";
 }

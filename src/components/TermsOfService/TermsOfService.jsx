@@ -86,7 +86,7 @@ function TermsOfService() {
         application constitutes acceptance of the updated Terms.
       </p>
 
-      <h2>Contact</h2>
+      <h2>Contact Information</h2>
       <p>If you have any questions about these Terms, contact us at:</p>
       <p>contact@rolltogether.onliine</p>
     </div>

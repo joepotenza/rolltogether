@@ -111,9 +111,9 @@ export default class GroupAPI extends APIBase {
   // Submit an application
   submitApplication({ groupId, message }) {
     return this._makeAPICall({
-      endpoint: `/groups/${groupId}/applications`,
+      endpoint: `applications`,
       method: "POST",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ groupId, message }),
       requireToken: true,
     });
   }
@@ -121,9 +121,9 @@ export default class GroupAPI extends APIBase {
   // Update an application status
   updateApplicationStatus({ groupId, appId, status, response }) {
     return this._makeAPICall({
-      endpoint: `/groups/${groupId}/applications/${appId}`,
+      endpoint: `/applications/${appId}`,
       method: "PATCH",
-      body: JSON.stringify({ status, response }),
+      body: JSON.stringify({ groupId, status, response }),
       requireToken: true,
     });
   }

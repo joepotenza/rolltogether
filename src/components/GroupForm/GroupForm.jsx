@@ -206,8 +206,6 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
         : DOMPurify.sanitize(data.story);
     data.description = DOMPurify.sanitize(data.description);
 
-    // console.log(data);
-
     if (!groupInfo) {
       // submit new group
       await groupAPI

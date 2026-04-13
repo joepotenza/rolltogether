@@ -37,12 +37,11 @@ function GroupAdministration({
             className="administration__button admininistraion__button_type_apply administration__button_disabled"
             disabled
           >
-            Your application
             {myApplications[0].status === "new"
-              ? " is being reviewed"
+              ? "Your application is being reviewed"
               : myApplications[0].status === "approved"
-                ? " has been approved!"
-                : " was denied"}
+                ? "✅ Your application was approved!"
+                : "❌ Your application was denied"}
           </button>
         ) : groupInfo.slots.open < 1 ? (
           <button

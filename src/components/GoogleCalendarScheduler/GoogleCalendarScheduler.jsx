@@ -12,7 +12,6 @@ import CurrentUserContext from "../../contexts/CurrentUserContext";
 import PageContext from "../../contexts/PageContext";
 
 function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
-  console.log("render GoogleCalendarScheduler");
   const { currentUser } = useContext(CurrentUserContext);
   const { getPrettierErrorMessage } = useContext(PageContext);
   const [matchingError, setMatchingError] = useState("");
@@ -125,7 +124,6 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
     } else {
       setMatchingError("");
     }
-    console.log(response);
   };
 
   // Google Calendar matching had an error of any kind
@@ -178,7 +176,6 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
   and to make it clear the scheduler needs to be re-run to check availability */
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    console.log("attendees changed, clearing results");
     setMatchingResults([]);
     setDisconnectedUsers([]);
     setMatchingError("");

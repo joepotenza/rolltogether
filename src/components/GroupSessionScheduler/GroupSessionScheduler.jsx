@@ -23,7 +23,6 @@ import WYSIWYG from "../WYSIWYG/WYSIWYG";
 import checkIcon from "../../images/check_icon.svg";
 
 function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
-  console.log("render GroupSessionScheduler");
   const { groupAPI, getPrettierErrorMessage } = useContext(PageContext);
   const [submitError, setSubmitError] = useState("");
   const [datePickerMode, setDatePickerMode] = useState("manual");
@@ -289,7 +288,6 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
   };
 
   useEffect(() => {
-    console.log("useeffect reset");
     reset(defaultValues);
     setTimeChosenFromGoogleScheduler(
       defaultValues.date && defaultValues.date !== "",
@@ -297,7 +295,6 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
   }, [defaultValues, reset]);
 
   useEffect(() => {
-    console.log("useeffect subscribe");
     // make sure to unsubscribe;
     const callback = subscribe({
       formState: {
@@ -358,7 +355,7 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
                   className={`form__error ${errors.attendees ? "form__error_has-error" : ""}`}
                   id="scheduler-attendees-error"
                 >
-                  {errors.attendees?.root?.message}
+                  {!attendees.length && errors.attendees?.root?.message}
                 </span>
               </label>
 

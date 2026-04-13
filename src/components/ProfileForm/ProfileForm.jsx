@@ -107,7 +107,6 @@ function ProfileForm({
 
   const handleFormSubmit = async (data) => {
     setEditProfileSuccess(false);
-    console.log(data);
     await authAPI
       .editUserProfile(data)
       .then((user) => {
@@ -139,7 +138,6 @@ function ProfileForm({
   */
   const handleStartOAuthProcess = (evt) => {
     try {
-      // console.log("Initializing Google Auth");
       evt.preventDefault();
       setGoogleError("");
       setGoogleSuccess("");
@@ -166,7 +164,6 @@ function ProfileForm({
     to let the user know of its success or failure (result.isOk = true/false, result.message)
   */
   const handleBackendOAuthResponse = (result) => {
-    // console.log("handleBackendOAuthResponse ", result);
     if (result.isOk) {
       // Success
       setGoogleSuccess(result.message);
@@ -177,7 +174,6 @@ function ProfileForm({
   };
 
   const handleRevokeOAuthError = (err) => {
-    console.log(err);
     const msg =
       err?.message || "An error occurred on the server. Please try again.";
     document.querySelector(".modal__delete-error").textContent = msg;

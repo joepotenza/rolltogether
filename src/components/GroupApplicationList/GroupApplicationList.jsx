@@ -7,7 +7,7 @@ import "../Form/Form.css";
 import "./GroupApplicationList.css";
 import { useMemo, useState, useContext } from "react";
 import { Link } from "react-router";
-import { BANNED_WORDS, prettyDateFormat } from "../../utils/constants";
+import { hasBadWords, prettyDateFormat } from "../../utils/constants";
 import PageContext from "../../contexts/PageContext";
 import UserAvatar from "../UserAvatar/UserAvatar";
 import PreLoader from "../PreLoader/PreLoader";
@@ -75,7 +75,7 @@ function GroupApplicationList({
     const response = responseValues[appId] || "";
     // stop if there's a banned word
     const lowerResponse = response.toLowerCase();
-    if (BANNED_WORDS.some((word) => lowerResponse.includes(word))) {
+    if (hasBadWords(lowerResponse)) {
       const newErrors = {
         ...responseErrors,
         [appId]: "Your response contains a banned word",

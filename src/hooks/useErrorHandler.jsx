@@ -21,7 +21,7 @@ export function useErrorHandler(use404) {
     console.error(err);
   };
 
-  // 1. Create the UI variable
+  // Create the UI variable
   let ErrorUI = null;
 
   if (has404Error) {

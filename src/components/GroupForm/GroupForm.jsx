@@ -7,7 +7,7 @@ import "../Form/Form.css";
 import "./GroupForm.css";
 import { useEffect, useState, useContext } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { BANNED_WORDS } from "../../utils/constants";
+import { hasBadWords } from "../../utils/constants";
 import PageContext from "../../contexts/PageContext";
 import { useNavigate } from "react-router";
 import WYSIWYG from "../WYSIWYG/WYSIWYG";
@@ -61,7 +61,7 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
     } else {
       // Check for banned words
       const lowerName = values.name.toLowerCase();
-      if (BANNED_WORDS.some((word) => lowerName.includes(word))) {
+      if (hasBadWords(lowerName)) {
         errors.name = { message: "Your group name contains a banned word" };
       }
     }
@@ -78,7 +78,7 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
     } else {
       // Check for banned words
       const lowerSummary = values.summary.toLowerCase();
-      if (BANNED_WORDS.some((word) => lowerSummary.includes(word))) {
+      if (hasBadWords(lowerSummary)) {
         errors.summary = { message: "Your summary contains a banned word" };
       }
     }
@@ -95,7 +95,7 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
     } else if (values.story) {
       // Check for banned words
       const lowerStory = values.story.toLowerCase();
-      if (BANNED_WORDS.some((word) => lowerStory.includes(word))) {
+      if (hasBadWords(lowerStory)) {
         errors.story = { message: "Your story name contains a banned word" };
       }
     }
@@ -153,7 +153,7 @@ function GroupForm({ groupInfo, onSubmit, onGoBack }) {
         // Check for banned words
         const lowerDescription = onlyText.toLowerCase();
 
-        if (BANNED_WORDS.some((word) => lowerDescription.includes(word))) {
+        if (hasBadWords(lowerDescription)) {
           errors.description = {
             message: "Your description contains a banned word",
           };

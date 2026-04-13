@@ -507,9 +507,13 @@ function friendlyDate(isoString) {
 }
 
 function hasBadWords(str) {
+  if (str.split(" ").length === 1) {
+    // if one word, look for bad words anywhere
+    return BANNED_WORDS.some((word) => str.includes(word));
+  }
   return BANNED_WORDS.some((word) => {
     const re = new RegExp(`\b${word}\b`, "gi");
-    return re.test(word);
+    return re.test(str);
   });
 }
 

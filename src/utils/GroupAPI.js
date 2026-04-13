@@ -111,7 +111,7 @@ export default class GroupAPI extends APIBase {
   // Submit an application
   submitApplication({ groupId, message }) {
     return this._makeAPICall({
-      endpoint: `applications`,
+      endpoint: `/applications`,
       method: "POST",
       body: JSON.stringify({ groupId, message }),
       requireToken: true,

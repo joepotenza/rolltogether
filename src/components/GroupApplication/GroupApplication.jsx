@@ -7,7 +7,7 @@ import "../Form/Form.css";
 import "./GroupApplication.css";
 import { useEffect, useState, useContext } from "react";
 import { useForm } from "react-hook-form";
-import { BANNED_WORDS } from "../../utils/constants";
+import { hasBadWords } from "../../utils/constants";
 import PageContext from "../../contexts/PageContext";
 
 function GroupApplication({ onSubmit, myApplications }) {
@@ -34,7 +34,7 @@ function GroupApplication({ onSubmit, myApplications }) {
     } else {
       // Check for banned words
       const lowerMessage = values.message.toLowerCase();
-      if (BANNED_WORDS.some((word) => lowerMessage.includes(word))) {
+      if (hasBadWords(lowerMessage)) {
         errors.message = { message: "Your message contains a banned word" };
       }
     }

@@ -7,7 +7,7 @@ import "./ProfileForm.css";
 import { useEffect, useState, useContext, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import validator from "validator";
-import { BANNED_WORDS } from "../../utils/constants";
+import { hasBadWords } from "../../utils/constants";
 import AvatarGenerator from "../AvatarGenerator/AvatarGenerator";
 import CurrentUserContext from "../../contexts/CurrentUserContext";
 import PageContext from "../../contexts/PageContext";
@@ -51,7 +51,7 @@ function ProfileForm({
     } else {
       // Check for banned words
       const lowerName = values.name.toLowerCase();
-      if (BANNED_WORDS.some((word) => lowerName.includes(word))) {
+      if (hasBadWords(lowerName)) {
         errors.name = { message: "Your name contains a banned word" };
       }
     }

@@ -201,7 +201,7 @@ function App() {
             onComplete(result); //SUCCESS
           })
           .catch((err) => {
-            console.err(err);
+            console.error(err);
             result.isOk = false;
             result.message = err.message;
             onComplete(result); //FAIL

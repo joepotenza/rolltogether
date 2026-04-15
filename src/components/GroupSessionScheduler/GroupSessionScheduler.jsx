@@ -411,29 +411,29 @@ function GroupSessionScheduler({ groupInfo, sessionInfo, onSubmit, onGoBack }) {
                   />
                 )}
 
-                {(datePickerMode === "manual" ||
-                  timeChosenFromGoogleScheduler) && (
-                  <label
-                    className={`form__label_type_session-date ${errors.date ? "form__label_has-error" : ""}`}
-                  >
-                    Session Date (Timezone: {tz})
-                    <div className="scheduler__date">
-                      <DatePicker
-                        name="date"
-                        onChange={(value) => {
-                          setValue("date", value);
-                        }}
-                        selected={selectedDate}
-                        timeInputLabel="Time:"
-                        dateFormat="MM/dd/yyyy h:mm aa"
-                        showTimeInput
-                        showIcon
-                        closeOnScroll
-                        className="form__datepicker"
-                      />
-                    </div>
-                  </label>
-                )}
+                {/* {(datePickerMode === "manual" ||
+                  timeChosenFromGoogleScheduler) && ( */}
+                <label
+                  className={`form__label_type_session-date ${errors.date ? "form__label_has-error" : ""}`}
+                >
+                  Session Date (Timezone: {tz})
+                  <div className="scheduler__date">
+                    <DatePicker
+                      name="date"
+                      onChange={(value) => {
+                        setValue("date", value);
+                      }}
+                      selected={selectedDate}
+                      timeInputLabel="Time:"
+                      dateFormat="MM/dd/yyyy h:mm aa"
+                      showTimeInput
+                      showIcon
+                      closeOnScroll
+                      className="form__datepicker"
+                    />
+                  </div>
+                </label>
+                {/* })} */}
                 <span
                   className={`form__error form__error_bold ${errors.date ? "form__error_has-error" : ""}`}
                   id="scheduler-date-error"

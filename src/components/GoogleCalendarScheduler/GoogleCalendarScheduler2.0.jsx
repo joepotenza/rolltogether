@@ -1,8 +1,6 @@
 /*
   GoogleCalendarScheduler.jsx
   Sub-component of GroupSessionScheduler that displays the Google Calendar matching for a group session
-
-  NOTE: REVERTED TO A SIMPLER VERSION UNTIL ALL BUGS ARE GONE
 */
 
 import "./GoogleCalendarScheduler.css";
@@ -10,10 +8,8 @@ import { useEffect, useMemo, useState, useContext } from "react";
 import { useWatch, useFormContext } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import { friendlyDate } from "../../utils/constants";
-import { format, formatRelative, parseISO } from "date-fns";
 import CurrentUserContext from "../../contexts/CurrentUserContext";
 import PageContext from "../../contexts/PageContext";
-import UserAvatar from "../UserAvatar/UserAvatar";
 
 function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
   const { currentUser } = useContext(CurrentUserContext);
@@ -21,18 +17,13 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
   const [matchingError, setMatchingError] = useState("");
   const [start, setStart] = useState(null);
   const [end, setEnd] = useState(null);
-  /* const [minUsers, setMinUsers] = useState(1);
+  const [minUsers, setMinUsers] = useState(1);
   const [minDuration, setMinDuration] = useState(30);
   const [prefStartHour, setPrefStartHour] = useState(-1);
-  const [prefEndHour, setPrefEndHour] = useState(-1); */
+  const [prefEndHour, setPrefEndHour] = useState(-1);
   const [isMatchingCalendars, setIsMatchingCalendars] = useState(false);
   const [disconnectedUsers, setDisconnectedUsers] = useState([]);
-  const [matchingResults, setMatchingResults] = useState({
-    complete: false,
-    blocks: [],
-    validUsers: [],
-  });
-  const [nobodyBusy, setNobodyBusy] = useState(false);
+  const [matchingResults, setMatchingResults] = useState([]);
   const { control } = useFormContext();
 
   const attendees = useWatch({ control, name: "attendees" });
@@ -55,17 +46,6 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
     });
   }, [attendees]);
 
-  // set a key:value for finding users by username
-  const usersByUsername = useMemo(() => {
-    const theAttendees = [...attendees];
-    const users = theAttendees.reduce((acc, attendee) => {
-      acc[attendee.username] = attendee;
-      return acc;
-    }, {});
-    users[currentUser.username] = currentUser;
-    return users;
-  }, [attendees, currentUser]);
-
   // # of attendees + the GM if they are also linked
   const totalAttendees = useMemo(() => {
     return attendeesWithGoogleConnected.length + (isOwnerConnected ? 1 : 0);
@@ -83,12 +63,6 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
       setIsMatchingCalendars(true);
       setDisconnectedUsers([]);
       setMatchingError("");
-      setNobodyBusy(false);
-      setMatchingResults({
-        complete: false,
-        blocks: [],
-        validUsers: [],
-      });
       const userIds = attendeesWithGoogleConnected.map(
         (attendee) => attendee._id,
       );
@@ -112,7 +86,6 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
           : -1;
       */
 
-      /*
       let s = prefStartHour;
       let e = prefEndHour;
 
@@ -123,17 +96,15 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
       const prefStartUTC = s === -1 ? -1 : (s + offsetHours + 24) % 24;
       const prefEndUTC = e === -1 ? -1 : (e + offsetHours + 24) % 24;
 
-      */
-
       onStartMatching(
         {
           start,
           end,
           userIds,
-          /* minUsers,
+          minUsers,
           minDuration,
           prefStartHour: prefStartUTC,
-          prefEndHour: prefEndUTC, */
+          prefEndHour: prefEndUTC,
         },
         handleMatchingComplete,
         handleMatchingError,
@@ -147,20 +118,11 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
   const handleMatchingComplete = (response) => {
     setIsMatchingCalendars(false);
     setDisconnectedUsers(response.disconnectedUsers);
-
-    if (response.nobodyBusy) {
-      setNobodyBusy(true);
+    setMatchingResults(response.blocks);
+    if (!response.blocks.length) {
+      setMatchingError("No results found for the provided time window");
     } else {
-      if (!response.blocks.length) {
-        setMatchingError("No results found for the provided time window");
-      } else {
-        setMatchingResults({
-          complete: true,
-          blocks: response.blocks,
-          validUsers: response.validUsers,
-        });
-        setMatchingError("");
-      }
+      setMatchingError("");
     }
   };
 
@@ -204,21 +166,17 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
     return options;
   };
 
-  /* const durationOptions = useMemo(
+  const durationOptions = useMemo(
     () => generateDurationOptions(),
     [generateDurationOptions],
-  ); */
+  );
 
   /* When the user selects or de-selects an attendee, the already matched results
   should go away to avoid any UI issues like incorrect numbers of available players
   and to make it clear the scheduler needs to be re-run to check availability */
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    setMatchingResults({
-      complete: false,
-      blocks: [],
-      validUsers: [],
-    });
+    setMatchingResults([]);
     setDisconnectedUsers([]);
     setMatchingError("");
   }, [attendees]);
@@ -279,8 +237,6 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
               dateStyle: "short",
             })}`}
       </div> */}
-
-      {/* 
       <div className="matcher__prefs">
         <label className="matcher__time-window">
           Preferred time window:
@@ -349,7 +305,6 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
           </div>
         </label>
       </div>
-      */}
       <button
         className="matcher__link-btn"
         type="button"
@@ -400,46 +355,6 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
               </div>
             )}
 
-            {nobodyBusy && (
-              <div className="availability-card__success">
-                No conflicts found! All{" "}
-                {disconnectedUsers.length > 0 ? "remaining" : ""} users are free
-                in the selected time window.
-              </div>
-            )}
-
-            {matchingResults.complete && (
-              <div className="matcher__array">
-                <h4 className="array__header">Player Availability:</h4>
-
-                <div className="array__holder">
-                  <AvailabilityTimes
-                    matchingResults={matchingResults}
-                    onSelectTime={onSelectTime}
-                  />
-                  <div className="array__data">
-                    {matchingResults.validUsers.map((username) => (
-                      <div className="array__col" key={`col-${username}`}>
-                        <div className="array__user">
-                          <UserAvatar
-                            avatarClass="array"
-                            user={usersByUsername[username]}
-                          />
-                          <div className="array__username">{username}</div>
-                        </div>
-                        <UserAvailability
-                          matchingResults={matchingResults}
-                          username={username}
-                          onSelectTime={onSelectTime}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 
             {matchingResults.length > 0 && (
               <div className="best-times">
                 <h4 className="best-times__header">
@@ -480,84 +395,10 @@ function GoogleCalendarScheduler({ onStartMatching, onSelectTime, tz }) {
                 </div>
               </div>
             )}
-            */}
           </div>
         )}
       </div>
     </div>
   );
 }
-
-function UserAvailability({ matchingResults, username, onSelectTime }) {
-  const makeUserCells = () => {
-    let cells = [];
-    let currDay = "";
-    let currHour = "";
-    for (let b = 0; b < matchingResults.blocks.length; b += 1) {
-      const block = matchingResults.blocks[b];
-      const blockDate = parseISO(block.start);
-      const dayOfWeek = format(blockDate, "M/d");
-      const userAvailability = block.users[username];
-      if (dayOfWeek !== currDay) {
-        currDay = dayOfWeek;
-        cells.push(
-          <div
-            className="array__cell array__day"
-            key={`${username}-day-${block.start}`}
-          ></div>,
-        );
-      }
-      cells.push(
-        <div
-          className={`array__cell ${userAvailability === "busy" ? "array__cell_busy" : ""}`}
-          key={`${username}-${block.start}`}
-          onClick={() => onSelectTime(block.start)}
-        ></div>,
-      );
-    }
-    return cells;
-  };
-
-  return makeUserCells();
-}
-
-function AvailabilityTimes({ matchingResults, onSelectTime }) {
-  const makeDaysAndHourRows = () => {
-    let hours = [];
-    let currDay = "";
-    let currHour = "";
-    for (let b = 0; b < matchingResults.blocks.length; b += 1) {
-      const block = matchingResults.blocks[b];
-      const blockDate = parseISO(block.start);
-      const dayOfWeek = format(blockDate, "M/d");
-      const thisHour = format(blockDate, "haaa");
-      if (dayOfWeek !== currDay) {
-        currDay = dayOfWeek;
-        hours.push(
-          <div className="array__time array__day" key={`day-${blockDate}`}>
-            {dayOfWeek}
-          </div>,
-        );
-      }
-      if (currHour !== thisHour) {
-        currHour = thisHour;
-        hours.push(
-          <div
-            className="array__time"
-            key={blockDate}
-            onClick={() => onSelectTime(block.start)}
-          >
-            {thisHour}
-          </div>,
-        );
-      }
-    }
-    return hours;
-  };
-
-  const rows = makeDaysAndHourRows();
-
-  return <div className="array__times">{rows}</div>;
-}
-
 export default GoogleCalendarScheduler;

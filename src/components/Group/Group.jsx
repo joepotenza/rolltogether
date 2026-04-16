@@ -304,8 +304,8 @@ function Group() {
           <>
             {/*Set document title*/}
             <title>{`${groupInfo.name} | Roll Together`}</title>
-            <h1 className="group__name">{groupInfo.name}</h1>
             <div className="group__content">
+              <h1 className="group__name">{groupInfo.name}</h1>
               <div className="group__details">
                 {/* First: Details bar */}
                 <GroupDetails groupInfo={groupInfo} />

@@ -26,6 +26,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
 }
 .session__name {
   font-family: "CabinetGroteskBold";
@@ -35,7 +37,7 @@
 }
 .session__attendee-header {
   font-family: "CabinetGroteskBold";
-  font-size: 18px;
+  font-size: 16px;
 }
 .session__attendees {
   display: flex;

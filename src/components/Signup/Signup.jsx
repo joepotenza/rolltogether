@@ -93,9 +93,9 @@ function Signup({ onSignup }) {
       }
     }
 
-    if (!values.invite) {
-      errors.invite = { message: "Please enter your invite code" };
-    }
+    // if (!values.invite) {
+    //  errors.invite = { message: "Please enter your invite code" };
+    // }
 
     // Avatar validation
     if (!values.avatar) {
@@ -309,7 +309,7 @@ function Signup({ onSignup }) {
           {signupError}
         </span>
 
-        <div className="signup__beta-card">
+        {/* <div className="signup__beta-card">
           <label
             htmlFor="signup-invite"
             className={`form__label ${errors.invite ? "form__label_has-error" : ""}`}
@@ -349,7 +349,7 @@ function Signup({ onSignup }) {
               {errors.invite?.message}
             </span>
           </label>
-        </div>
+        </div> */}
 
         <button
           className={`form__submit-btn form__submit-btn-type_signup`}

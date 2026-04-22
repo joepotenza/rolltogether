@@ -1,0 +1,148 @@
+.results {
+  /*margin: 6px 0 0 0;*/
+  width: 100%;
+}
+
+.results__table {
+  border-collapse: collapse;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.results__result {
+  cursor: pointer;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.2s ease;
+  background: #fff;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.results__result:hover {
+  background: #f8fafc;
+}
+
+.results__result:first-of-type {
+  border-top: 1px solid #e2e8f0;
+  border-radius: 8px 8px 0 0;
+}
+.results__result:last-of-type {
+  border-radius: 0 0 8px 8px;
+}
+
+.result__cell {
+  vertical-align: top;
+  padding: 12px 5px 12px 0;
+}
+
+.result__cell:first-of-type {
+  padding-left: 5px;
+}
+
+.result__cell:not(:last-of-type) {
+  padding-right: 12px;
+}
+
+.result__cell_type_noresult {
+  text-align: center;
+}
+
+.result__name,
+.result__name:visited {
+  font-size: 1.1rem;
+  color: #005464; /* your brand color */
+  margin-bottom: 4px;
+  font-family: "CabinetGroteskBold";
+}
+
+.result__summary {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.result__details {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+}
+
+.result__group {
+  display: flex;
+  gap: 4px;
+  margin: 0 auto 8px;
+  width: 100%;
+}
+
+.result__system,
+.result__type {
+  flex-basis: 100%;
+  border-radius: 10px;
+  font-family: "CabinetGroteskBold";
+  padding: 5px;
+  text-align: center;
+}
+
+.result__system_type_35e {
+  border: 1px solid var(--sys35e-bg);
+  background-color: var(--sys35e-bg);
+  color: var(--sys35e-font);
+}
+
+.result__system_type_5e {
+  border: 1px solid var(--sys5e-bg);
+  background-color: var(--sys5e-bg);
+  color: var(--sys5e-font);
+}
+
+.result__system_type_55e {
+  border: 1px solid var(--sys55e-bg);
+  background-color: var(--sys55e-bg);
+  color: var(--sys55e-font);
+}
+
+.result__type {
+  background-color: var(--group-type-bg);
+  border: 1px solid var(--group-type-border);
+  color: var(--group-type-base);
+}
+
+.result_type_inperson {
+  color: var(--group-type-inperson);
+}
+
+.result_type_online {
+  color: var(--group-type-online);
+}
+
+.result_type_hybrid {
+  color: var(--group-type-hybrid);
+}
+
+.result__gm,
+.result__story,
+.result__players {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.result__gm-label,
+.result__players-label,
+.result__story-label {
+  font-family: "CabinetGroteskBold";
+  padding-right: 6px;
+}
+
+@media screen and (max-width: 768px) {
+  .result__group {
+    flex-direction: column;
+  }
+  .results__header-cell_type_details {
+    min-width: 150px;
+  }
+}

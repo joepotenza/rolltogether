@@ -1,0 +1,20 @@
+.errpage {
+  min-width: 250px;
+  min-height: 250px;
+  max-width: 500px;
+  margin: 24px auto;
+  font-size: 24px;
+  text-align: center;
+}
+
+.errpage__title {
+  margin: 0 0 24px;
+  font-size: 32px;
+  font-family: "CabinetGroteskBold";
+}
+
+.errpage__message {
+  width: 100%;
+  text-align: center;
+  font-size: 20px;
+}

@@ -1,0 +1,16 @@
+.login__content {
+  width: 300px;
+  margin: 24px auto 0;
+}
+.login__title {
+  margin: 0 0 24px;
+  font-size: 20px;
+  line-height: 24px;
+  font-family: "CabinetGroteskBold";
+}
+
+@media screen and (max-width: 630px) {
+  .login__content {
+    width: 250px;
+  }
+}

@@ -1,0 +1,170 @@
+.scheduler__content {
+  margin-right: 24px;
+}
+.scheduler__form {
+  max-width: 1000px;
+}
+
+.scheduler__title {
+  margin: 24px 0;
+  font-family: "CabinetGroteskBold";
+  font-size: 24px;
+}
+
+.scheduler__date {
+  margin: -0 0 24px;
+}
+
+.react-datepicker-popper {
+  z-index: 1000 !important; /*override date picker setting so this doesn't get hidden behind the WYSIWYG */
+}
+.react-datepicker__calendar-icon {
+  padding-top: 0.9em !important; /*override date picker setting to correctly align the calendar icon */
+}
+
+.scheduler__matcher {
+  margin-bottom: 24px;
+}
+
+.scheduler__attendees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 10px 24px;
+}
+
+.scheduler__attendee-text {
+  margin: 0 0 24px;
+}
+
+.attendee {
+  opacity: 0.4;
+  position: relative;
+}
+
+.attendee__avatar-btn {
+  width: 60px;
+  height: 60px;
+  border: 0;
+  cursor: pointer;
+  background-color: transparent;
+  padding: 0;
+}
+.attendee__checkmark {
+  position: absolute;
+  top: 44px;
+  left: 44px;
+  width: 16px;
+  height: 16px;
+  z-index: 1;
+  display: none;
+}
+.attendee_selected {
+  opacity: 1;
+}
+.attendee_selected > .attendee__checkmark {
+  display: block;
+}
+
+.scheduler__date-card {
+  border: 1px solid #eee;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  padding: 8px;
+  margin-bottom: 32px;
+}
+
+.date-card__mode {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+.date-card__btn {
+  font-family: "CabinetGroteskBold";
+  padding: 8px;
+  background-color: #f3f2f5;
+  border: 1px solid #e1e2e8;
+  cursor: pointer;
+  height: 36px;
+}
+.date-card__btn_selected {
+  color: white;
+  background-color: var(--main-teal);
+  border: 1px solid var(--main-teal);
+}
+.date-card__btn_manual {
+  border-radius: 8px 0 0 8px;
+}
+.date-card__btn_google {
+  border-radius: 0 8px 8px 0;
+}
+
+.form__label_type_session-date {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 10px;
+  font-family: "CabinetGrotesk";
+  font-weight: 700;
+}
+
+.scheduler__date {
+  font-size: 16px;
+  font-family: "CabinetGroteskBold";
+}
+
+.scheduler__preSessionNotes,
+.scheduler__postSessionNotes {
+  margin-bottom: 32px;
+}
+.form__submit-btn-type_scheduler {
+  min-width: 160px;
+}
+.scheduler__cancel-btn {
+  background-color: #fff;
+  color: #000;
+  text-align: center;
+  padding: 8px 16px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 100%;
+  width: 124px;
+  height: 36px;
+  font-family: "CabinetGroteskBold";
+  font-size: 16px;
+  line-height: 20px;
+  margin-left: 16px;
+}
+.scheduler__cancel-btn:hover {
+  background-color: #000;
+  opacity: 0.6;
+  color: #fff;
+}
+
+@media screen and (max-width: 630px) {
+  .scheduler__cancel-btn {
+    width: 100%;
+    height: 44px;
+    margin: 12px 0 0 0;
+  }
+}
+
+@media screen and (max-width: 375px) {
+  .date-card__mode {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .date-card__btn {
+    width: 160px;
+  }
+  .date-card__btn_manual {
+    border-radius: 8px 8px 0 0;
+  }
+  .date-card__btn_google {
+    border-radius: 0 0 8px 8px;
+  }
+}

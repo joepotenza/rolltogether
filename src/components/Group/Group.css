@@ -1,0 +1,230 @@
+.group {
+  position: relative; /*for preloader*/
+}
+.group__back-btn {
+  display: block;
+  margin: 8px 0 0;
+}
+
+.group__content {
+  margin: 0 auto;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  max-width: 1100px;
+  flex-wrap: wrap;
+}
+
+.group__details {
+  flex: 1; /* 0 calc(100% - 250px); */
+  max-width: 700px;
+}
+
+.group__name {
+  margin: 24px 0 0;
+  font-family: "CabinetGroteskBold";
+  font-size: 32px;
+  line-height: 100%;
+  flex: 1 0 100%;
+}
+
+.group__description {
+}
+.group__description p {
+  line-height: 1.65;
+  margin-bottom: 14px;
+}
+.group__description img {
+  max-width: 100%;
+  height: auto;
+}
+
+.group__description h1,
+.group__description h2,
+.group__description h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.group__info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0;
+  width: 100%;
+}
+
+.group__sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  /* max-height: 400px;
+  overflow-y: auto; */
+}
+
+.group__sidebar,
+.group__gm,
+.group__player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.group__avatar {
+  width: 60px;
+  height: 60px;
+}
+.group__avatar,
+.group__avatar:visited {
+  color: rgba(255, 255, 255, 1);
+}
+
+.gm__header,
+.players__header {
+  font-family: "CabinetGroteskBold";
+  font-size: 16px;
+  color: #6b7280;
+  background-color: #e7e7e7;
+  width: 100%;
+  text-align: center;
+  padding: 4px 0;
+  border-radius: 8px;
+}
+
+.gm__name,
+.player__name {
+  font-family: "CabinetGroteskBold";
+}
+
+.group__system,
+.group__type,
+.group__story,
+.group__slots {
+  border-radius: 10px;
+  font-family: "CabinetGroteskBold";
+  padding: 5px;
+  text-align: center;
+  min-width: 100px;
+}
+.group__system,
+.group__type,
+.group__slots {
+  max-width: 150px;
+}
+
+.group__system_type_35e {
+  border: 1px solid var(--sys35e-bg);
+  background-color: var(--sys35e-bg);
+  color: var(--sys35e-font);
+}
+
+.group__system_type_5e {
+  border: 1px solid var(--sys5e-bg);
+  background-color: var(--sys5e-bg);
+  color: var(--sys5e-font);
+}
+
+.group__system_type_55e {
+  border: 1px solid var(--sys55e-bg);
+  background-color: var(--sys55e-bg);
+  color: var(--sys55e-font);
+}
+
+.group__type {
+  background-color: transparent;
+  border: 1px solid var(--group-type-border);
+  color: var(--group-type-base);
+}
+
+.group_type_live {
+  color: var(--group-type-inperson);
+}
+
+.group_type_online {
+  color: var(--group-type-online);
+}
+
+.group_type_hybrid {
+  color: var(--group-type-hybrid);
+}
+
+.group__story {
+  background-color: #e6f2f5;
+  border: 1px solid #e6f2f5;
+  color: #005464;
+}
+.group__slots {
+  border: 1px solid #0a6f82;
+  background-color: #0a6f82;
+  color: #fff;
+}
+
+.group__application {
+  max-width: 700px;
+}
+
+.session__title {
+  font-family: "CabinetGroteskBold";
+  font-size: 32px;
+}
+
+/**Avoid duplicating these by being included in both SessionList and SessionScheduler **/
+.attendee {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-width: 60px;
+  align-items: center;
+}
+.attendee__avatar {
+  width: 60px;
+  height: 60px;
+}
+.attendee__name {
+  font-family: "CabinetGroteskBold";
+}
+
+@media screen and (max-width: 1024px) {
+  .group__sidebar {
+    width: 160px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .group__info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: max-content;
+    margin: 8px auto;
+  }
+}
+
+@media screen and (max-width: 630px) {
+  .group__content {
+    flex-direction: column;
+    align-items: center;
+  }
+  .group__sidebar {
+    width: 80%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  .group__system,
+  .group__type,
+  .group__story,
+  .group__slots {
+    flex: 1 0 calc(50% - 8px);
+    max-width: 180px;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  .group__info {
+    width: auto;
+  }
+}

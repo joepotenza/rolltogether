@@ -1,0 +1,154 @@
+.applications__header {
+  font-size: 24px;
+  font-family: "CabinetGroteskBold";
+  margin: 24px 0;
+}
+.applications__list {
+  position: relative; /*for preloader*/
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.application {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 600px;
+  border: 1px solid #eee;
+  /* Apply shadow to the box */
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.application:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.application_type_new {
+  border: 1px solid #fcd34d;
+  background: #fffbeb;
+}
+
+.application__main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+.application__message {
+  margin-top: 4px;
+}
+.application__buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 0 72px;
+}
+.application__avatar {
+  width: 60px;
+  height: 60px;
+}
+.application__details {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 2;
+  gap: 4px;
+}
+.application__username {
+  font-family: "CabinetGroteskBold";
+  font-size: 20px;
+}
+.application__date {
+  font-size: 14px;
+}
+.application__more {
+  font-family: "CabinetGroteskBold";
+  color: rgba(0, 131, 147);
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: inline;
+  cursor: pointer;
+  background-color: #fff;
+}
+
+.application__more:hover {
+  text-decoration: underline;
+}
+
+.application__status {
+  border-radius: 8px;
+  padding: 6px;
+  font-family: "CabinetGroteskBold";
+  font-size: 16px;
+  line-height: 20px;
+  height: 20px;
+  width: 70px;
+  text-align: center;
+}
+.application__status_new {
+  background-color: #ffe599;
+}
+.application__status_approved {
+  background-color: #38761d;
+  color: white;
+}
+.application__status_denied {
+  background-color: #de4545; /*#e06666*/
+  color: white;
+}
+
+.application__button {
+  border-radius: 8px;
+  padding: 8px;
+  font-family: "CabinetGroteskBold";
+  font-size: 18px;
+  width: 100px;
+  cursor: pointer;
+}
+.application__button:hover {
+  opacity: 0.8;
+}
+
+.application__button_type_approve {
+  background: #2e7d32;
+  color: white;
+  border: 1px solid #2e7d32;
+}
+.application__button_type_deny {
+  background: #b91c1c;
+  color: white;
+  border: 1px solid #b91c1c;
+}
+
+.application__error {
+  font-family: "CabinetGroteskBold";
+  color: rgba(255, 77, 0, 1);
+  margin-left: 72px;
+}
+.application__response {
+  margin-left: 72px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.application__response-label {
+  font-family: "CabinetGroteskBold";
+}
+
+.application__textarea {
+  border: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+.application__textarea::placeholder {
+  color: #9ca3af;
+}

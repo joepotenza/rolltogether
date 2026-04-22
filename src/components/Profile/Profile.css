@@ -1,0 +1,56 @@
+.profile {
+  display: flex;
+  gap: 15px;
+  align-items: start;
+  margin-top: 32px;
+  position: relative; /* for preloader */
+}
+
+.sidebar__profile {
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.profile__content {
+  padding-top: 8px;
+  flex: 1 0 calc(100% - 220px);
+}
+
+.profile__avatar {
+  width: 120px;
+  height: 120px;
+}
+
+.profile__username {
+  margin: 0;
+  font-family: "CabinetGroteskBold";
+  font-size: 24px;
+}
+
+.profile__subtitle {
+  margin: 0;
+  font-family: "CabinetGroteskBold";
+  font-size: 24px;
+}
+
+.profile__results {
+  margin: 32px 0;
+}
+
+.profile__groups_gm,
+.profile__groups_member {
+  /* for preloader */
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+}
+
+@media screen and (max-width: 630px) {
+  .profile {
+    flex-direction: column;
+    align-items: center;
+  }
+}

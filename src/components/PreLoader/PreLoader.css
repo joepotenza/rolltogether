@@ -1,0 +1,28 @@
+.circle-preloader {
+  display: block;
+  width: 50px;
+  height: 50px;
+  border: 4px solid #444;
+  border-bottom-color: #888;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  visibility: hidden;
+  animation: spin 0.75s infinite linear;
+  animation-delay: 0.5s; /* The delay before it starts. This helps prevent flashing on page load */
+  animation-fill-mode: forwards; /* Stays visible after animation */
+}
+
+@keyframes spin {
+  0% {
+    visibility: hidden;
+  }
+  100% {
+    transform: rotate(360deg);
+    visibility: visible;
+  }
+}

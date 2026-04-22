@@ -1,0 +1,255 @@
+.form__label {
+  display: block;
+  margin: 0 0 24px;
+  font-family: "CabinetGroteskBold";
+}
+
+.form__label_has-error,
+.form__fieldset_has-error {
+  border: 0;
+}
+
+.form__label:hover,
+.form__input:hover {
+  cursor: pointer;
+}
+
+.form__sublabel {
+  font-family: "CabinetGrotesk";
+  display: block;
+  margin: 12px 0 0 0;
+}
+
+.form__input {
+  display: block;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  padding: 10px;
+  margin: 8px 0 0 0;
+  width: calc(95%);
+}
+.form__input_type_number {
+  max-width: 50px;
+}
+.form__datepicker {
+  display: block;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  padding-left: 30px !important;
+  margin: 8px 0 0 0;
+}
+.form__daterange {
+  display: block;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  padding-left: 30px !important;
+  margin: 8px 0 0 0;
+  width: 220px;
+}
+.form__textarea {
+  font-family: "CabinetGrotesk";
+  min-height: 75px;
+}
+
+.form__input::placeholder,
+.form__input::-webkit-input-placeholder,
+.form__input::-moz-placeholder {
+  opacity: 0.5;
+}
+
+.form__select {
+  display: block;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  padding: 10px;
+  margin: 8px 0 0 0;
+}
+.form__input_has-error,
+.form__select_has-error {
+  border: 1px solid rgba(255, 77, 0, 1);
+}
+
+.form__error {
+  display: none;
+  color: rgba(255, 77, 0, 1);
+  margin: 4px 0 20px 0;
+}
+.form__error_bold {
+  font-family: "CabinetGroteskBold";
+}
+
+.form__error_has-error {
+  display: block;
+}
+
+.form__submit-btn {
+  background-color: var(--main-teal);
+  color: #fff;
+  text-align: center;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 100%;
+  width: 124px;
+  height: 36px;
+  margin-top: 24px;
+  font-family: "CabinetGroteskBold";
+  font-size: 16px;
+  line-height: 20px;
+}
+
+.form__signup-btn,
+.form__login-btn {
+  background-color: #fff;
+  color: rgba(0, 0, 0, 0.5);
+  text-align: center;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  line-height: 100%;
+  height: 36px;
+  margin-left: 12px;
+  font-family: "CabinetGroteskBold";
+  font-size: 16px;
+  line-height: 20px;
+}
+
+.form__login-btn {
+  margin-left: 10px;
+}
+
+.form__submit-btn-type_user-login {
+  width: 73px;
+}
+
+.form__submit-btn-type_user-signup {
+  width: 86px;
+}
+
+.form__submit-btn-type_user-profile {
+  width: 128px;
+}
+
+.form__submit-btn-type_application {
+  width: 180px;
+}
+
+.form__submit-btn:hover {
+  opacity: 0.6;
+}
+
+.form__submit-btn:disabled,
+.form__submit-btn:disabled:hover,
+.form__submit-btn_disabled,
+.form__submit-btn_disabled:hover {
+  opacity: 0.3;
+}
+
+.form__radio-buttons,
+.form__fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.form__radio-buttons_has-error,
+.form__fieldset_has-error {
+  border-bottom: 1px solid rgba(255, 77, 0, 1);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.form__legend {
+  font-family: "CabinetGroteskBold";
+  font-size: 16px;
+  line-height: 20px;
+  margin: 0 0 12px;
+}
+
+.form__radio-button {
+  display: flex;
+  gap: 8px;
+  height: 20px;
+  margin-bottom: 8px;
+}
+
+.form__label_type_radio {
+  color: rgba(0, 0, 0, 0.5);
+  border: 0;
+}
+
+.form__radio-input:checked + label {
+  color: rgba(0, 0, 0, 1);
+}
+
+.form__password-strength {
+  display: flex;
+  gap: 6px;
+  height: 20px;
+  align-items: center;
+  justify-content: start;
+  margin: 0 0 24px;
+}
+.password-strength__label {
+  display: block;
+  font-family: "CabinetGroteskBold";
+}
+
+.ql-editor {
+  font-family: "CabinetGrotesk", Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  min-height: 250px;
+}
+
+/*** Password Strength Meter (future roadmap) 
+meter {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  height: 20px;
+  width: 100px;
+}
+meter::-webkit-meter-bar {
+  background: none;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+meter[value="1"]::-webkit-meter-optimum-value {
+  background: red;
+}
+meter[value="2"]::-webkit-meter-optimum-value {
+  background: yellow;
+}
+meter[value="3"]::-webkit-meter-optimum-value {
+  background: orange;
+}
+meter[value="4"]::-webkit-meter-optimum-value {
+  background: green;
+}
+
+meter[value="1"]::-moz-meter-bar {
+  background: red;
+}
+meter[value="2"]::-moz-meter-bar {
+  background: yellow;
+}
+meter[value="3"]::-moz-meter-bar {
+  background: orange;
+}
+meter[value="4"]::-moz-meter-bar {
+  background: green;
+}
+***/
+
+@media screen and (max-width: 630px) {
+  .form__submit-btn {
+    width: 100%;
+    height: 44px;
+  }
+  .form__signup-btn,
+  .form__login-btn {
+    display: block;
+    margin-top: 8px;
+  }
+}

@@ -122,23 +122,36 @@ function App() {
     handleCloseModal();
   }
 
+  // clear user data on auth fail
+  function clearUserData() {
+    localStorage.clear();
+    authAPI.setUserToken("");
+    groupAPI.setUserToken("");
+    setCurrentUser(emptyUserInfo);
+    setIsLoggedIn(false);
+  }
+
   // Get Current user data from API and validate before setting state and context variables
   async function getCurrentUserData(onFinish) {
     await authAPI
       .getCurrentUser()
       .then((user) => {
         if (!user || !user._id) {
-          localStorage.clear();
-          authAPI.setUserToken("");
-          groupAPI.setUserToken("");
-          setCurrentUser(emptyUserInfo);
-          setIsLoggedIn(false);
+          clearUserData();
         } else {
           setCurrentUser(user);
           setIsLoggedIn(true);
         }
       })
-      .catch(handleFetchError)
+      .catch((err) => {
+        if (err.statusCode && err.statusCode === 401) {
+          // unauthorized, clear user data
+          clearUserData();
+        } else {
+          // other error, show error screen
+          handleFetchError(err);
+        }
+      })
       .finally(() => {
         if (typeof onFinish === "function") onFinish();
         setIsCheckingAuth(false);
